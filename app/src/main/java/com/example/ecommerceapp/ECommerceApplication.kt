@@ -1,4 +1,7 @@
 package com.example.ecommerceapp
 
-class ECommerceApplication {
-}
+import android.app.Application
+import dagger.hilt.android.HiltAndroidApp
+
+@HiltAndroidApp
+class ECommerceApplication : Application()
