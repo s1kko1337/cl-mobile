@@ -8,13 +8,19 @@ data class RegisterRequest(
 )
 
 data class LoginRequest(
-    val email: String,
+    val username: String,
     val password: String
 )
 
-data class AuthResponse(
-    val token: String,
-    val userId: Int,
+data class UserData(
+    val id: Int,
+    val login: String,
     val role: String,
-    val username: String
+)
+
+data class AuthResponse(
+    val success: Boolean,
+    val message: String,
+    val user: UserData,
+    val token: String
 )

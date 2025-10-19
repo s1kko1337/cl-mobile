@@ -24,13 +24,18 @@ class AuthRepository @Inject constructor(
         }
     }
 
-    suspend fun login(email: String, password: String): Resource<AuthResponse> {
+    suspend fun login(username: String, password: String): Resource<AuthResponse> {
         return try {
-            val response = api.login(LoginRequest(email, password))
+            val response = api.login(LoginRequest(username, password))
             if (response.isSuccessful && response.body() != null) {
-                val authData = response.body()!!
-                userPrefs.saveAuthData(authData.token, authData.userId, authData.role, authData.username)
-                Resource.Success(authData)
+                val authResponse = response.body()!!
+                userPrefs.saveAuthData(
+                    authResponse.token,
+                    authResponse.user.id,
+                    authResponse.user.role,
+                    authResponse.user.login
+                )
+                Resource.Success(authResponse)
             } else {
                 Resource.Error(response.message() ?: "Login failed")
             }

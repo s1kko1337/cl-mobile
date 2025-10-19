@@ -8,7 +8,7 @@ import javax.inject.Inject
 class CategoryRepository @Inject constructor(
     private val api: ApiService
 ) {
-    suspend fun getCategories(): Resource<List<Category>> {
+    suspend fun getCategories(): Resource<List<CategoryDTO>> {
         return try {
             val response = api.getCategories()
             if (response.isSuccessful && response.body() != null) {

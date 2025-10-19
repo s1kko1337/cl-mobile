@@ -1,4 +1,283 @@
 package com.example.ecommerceapp.ui.customer.product
 
-class ProductDetailScreen {
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.ecommerceapp.data.model.ProductReviewDTO
+import coil3.compose.AsyncImage
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ProductDetailScreen(
+    onNavigateBack: () -> Unit,
+    onNavigateToCart: () -> Unit,
+    viewModel: ProductDetailViewModel = hiltViewModel()
+) {
+    val state by viewModel.state.collectAsState()
+    var quantity by remember { mutableStateOf(1) }
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(state.addedToCart) {
+        if (state.addedToCart) {
+            snackbarHostState.showSnackbar("Товар добавлен в корзину")
+            viewModel.resetAddedToCart()
+        }
+    }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Детали товара") },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Назад")
+                    }
+                }
+            )
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        bottomBar = {
+            state.product?.let { product ->
+                if (product.stock > 0) {
+                    Surface(
+                        shadowElevation = 8.dp
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column {
+                                Text("Количество")
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    IconButton(
+                                        onClick = { if (quantity > 1) quantity-- },
+                                        enabled = quantity > 1
+                                    ) {
+                                        Text("-", style = MaterialTheme.typography.headlineSmall)
+                                    }
+                                    Text(
+                                        text = quantity.toString(),
+                                        style = MaterialTheme.typography.titleLarge,
+                                        modifier = Modifier.padding(horizontal = 16.dp)
+                                    )
+                                    IconButton(
+                                        onClick = { if (quantity < product.stock) quantity++ },
+                                        enabled = quantity < product.stock
+                                    ) {
+                                        Text("+", style = MaterialTheme.typography.headlineSmall)
+                                    }
+                                }
+                            }
+
+                            Button(
+                                onClick = { viewModel.addToCart(quantity) }
+                            ) {
+                                Text("В корзину ${product.price * quantity} ₽")
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    ) { padding ->
+        if (state.isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        } else if (state.error != null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(state.error ?: "Ошибка загрузки")
+            }
+        } else {
+            state.product?.let { product ->
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding)
+                ) {
+                    // Images
+                    if (!product.images.isNullOrEmpty()) {
+                        item {
+                            LazyRow(
+                                contentPadding = PaddingValues(16.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                items(product.images) { image ->
+                                    AsyncImage(
+                                        model = image.imageUrl,
+                                        contentDescription = image.altText,
+                                        modifier = Modifier.size(300.dp),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    // Product info
+                    item {
+                        Column(
+                            modifier = Modifier.padding(16.dp)
+                        ) {
+                            Text(
+                                text = product.name,
+                                style = MaterialTheme.typography.headlineMedium
+                            )
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            Text(
+                                text = "${product.price} ₽",
+                                style = MaterialTheme.typography.headlineLarge,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            if (product.averageRating != null) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        Icons.Default.Star,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        text = String.format("%.1f", product.averageRating),
+                                        style = MaterialTheme.typography.titleMedium
+                                    )
+                                    Text(
+                                        text = " (${product.reviewsCount} отзывов)",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            if (product.stock > 0) {
+                                Text(
+                                    text = "В наличии: ${product.stock} шт.",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.tertiary
+                                )
+                            } else {
+                                Text(
+                                    text = "Нет в наличии",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(24.dp))
+
+                            product.description?.let {
+                                Text(
+                                    text = "Описание",
+                                    style = MaterialTheme.typography.titleLarge
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = it,
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+                            }
+                        }
+                    }
+
+                    // Reviews
+                    if (state.reviews.isNotEmpty()) {
+                        item {
+                            Divider(modifier = Modifier.padding(vertical = 16.dp))
+                            Text(
+                                text = "Отзывы",
+                                style = MaterialTheme.typography.titleLarge,
+                                modifier = Modifier.padding(horizontal = 16.dp)
+                            )
+                        }
+
+                        items(state.reviews) { review ->
+                            ReviewItem(review)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ReviewItem(review: ProductReviewDTO) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = review.username,
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Row {
+                    repeat(5) { index ->
+                        Icon(
+                            Icons.Default.Star,
+                            contentDescription = null,
+                            tint = if (index < review.rating)
+                                MaterialTheme.colorScheme.primary
+                            else
+                                MaterialTheme.colorScheme.outline,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            review.comment?.let {
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Text(
+                text = review.createdAt,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
 }
