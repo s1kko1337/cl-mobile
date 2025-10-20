@@ -91,7 +91,7 @@ class ProductDetailViewModel @Inject constructor(
                 price = product.price,
                 quantity = quantity,
                 imageUrl = product.images?.firstOrNull()?.imageUrl,
-                stock = product.stock
+                stock = product.stockQuantity
             )
             cartRepository.addToCart(cartItem)
             _state.update { it.copy(addedToCart = true) }

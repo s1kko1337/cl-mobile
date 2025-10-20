@@ -150,9 +150,9 @@ fun AdminProductCard(
                     color = MaterialTheme.colorScheme.primary
                 )
                 Text(
-                    text = "Остаток: ${product.stock} шт.",
+                    text = "Остаток: ${product.stockQuantity} шт.",
                     style = MaterialTheme.typography.bodySmall,
-                    color = if (product.stock < 10)
+                    color = if (product.stockQuantity < 10)
                         MaterialTheme.colorScheme.error
                     else
                         MaterialTheme.colorScheme.onSurfaceVariant

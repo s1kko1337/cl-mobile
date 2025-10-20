@@ -43,7 +43,7 @@ class AdminDashboardViewModel @Inject constructor(
                 _stats.value = DashboardStats(
                     totalProducts = products.size,
                     totalCategories = categoriesResult.data?.size ?: 0,
-                    lowStockProducts = products.count { it.stock < 10 }
+                    lowStockProducts = products.count { it.stockQuantity < 10 }
                 )
             }
         }

@@ -180,9 +180,9 @@ fun ProductCard(
                         color = MaterialTheme.colorScheme.primary
                     )
 
-                    if (product.stock > 0) {
+                    if (product.stockQuantity > 0) {
                         Text(
-                            text = "В наличии: ${product.stock}",
+                            text = "В наличии: ${product.stockQuantity}",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

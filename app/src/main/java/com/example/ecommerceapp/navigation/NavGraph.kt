@@ -6,8 +6,11 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.example.ecommerceapp.ui.admin.categories.AdminCategoriesScreen
 import com.example.ecommerceapp.ui.admin.dashboard.AdminDashboardScreen
+import com.example.ecommerceapp.ui.admin.products.AdminProductEditScreen
 import com.example.ecommerceapp.ui.admin.products.AdminProductsScreen
+import com.example.ecommerceapp.ui.admin.reviews.AdminReviewsScreen
 import com.example.ecommerceapp.ui.auth.login.LoginScreen
 import com.example.ecommerceapp.ui.auth.register.RegisterScreen
 import com.example.ecommerceapp.ui.customer.cart.CartScreen
@@ -119,6 +122,29 @@ fun NavGraph(
                 onProductClick = { productId ->
                     navController.navigate(Screen.AdminProductEdit.createRoute(productId))
                 }
+            )
+        }
+
+        composable(
+            route = Screen.AdminProductEdit.route,
+            arguments = listOf(navArgument("productId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val productId = backStackEntry.arguments?.getInt("productId") ?: return@composable
+            AdminProductEditScreen(
+                productId = productId,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.AdminCategories.route) {
+            AdminCategoriesScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.AdminReviews.route) {
+            AdminReviewsScreen(
+                onNavigateBack = { navController.popBackStack() }
             )
         }
     }

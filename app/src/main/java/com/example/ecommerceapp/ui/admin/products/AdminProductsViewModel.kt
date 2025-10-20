@@ -66,9 +66,9 @@ class AdminProductsViewModel @Inject constructor(
         _state.update { it.copy(showAddDialog = false) }
     }
 
-    fun createProduct(name: String, description: String, price: Double, stock: Int, categoryId: Int) {
+    fun createProduct(name: String, description: String, price: Double, stock: Int, categoryId: Int, sku: String) {
         viewModelScope.launch {
-            val product = ProductCreateDTO(name, description, price, stock, categoryId)
+            val product = ProductCreateDTO(name, description, price, stock, categoryId, sku)
             when (productRepository.createProduct(product)) {
                 is Resource.Success -> {
                     loadProducts()
@@ -81,6 +81,7 @@ class AdminProductsViewModel @Inject constructor(
             }
         }
     }
+
 
     fun deleteProduct(id: Int) {
         viewModelScope.launch {

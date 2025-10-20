@@ -33,4 +33,17 @@ class ReviewRepository @Inject constructor(
             Resource.Error(e.message ?: "Network error")
         }
     }
+
+    suspend fun deleteReview(productId: Int, reviewId: Int): Resource<Unit> {
+        return try {
+            val response = api.deleteReview(productId, reviewId)
+            if (response.isSuccessful) {
+                Resource.Success(Unit)
+            } else {
+                Resource.Error(response.message() ?: "Failed to delete review")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
+        }
+    }
 }

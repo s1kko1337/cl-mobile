@@ -49,7 +49,7 @@ fun ProductDetailScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
             state.product?.let { product ->
-                if (product.stock > 0) {
+                if (product.stockQuantity > 0) {
                     Surface(
                         shadowElevation = 8.dp
                     ) {
@@ -75,8 +75,8 @@ fun ProductDetailScreen(
                                         modifier = Modifier.padding(horizontal = 16.dp)
                                     )
                                     IconButton(
-                                        onClick = { if (quantity < product.stock) quantity++ },
-                                        enabled = quantity < product.stock
+                                        onClick = { if (quantity < product.stockQuantity) quantity++ },
+                                        enabled = quantity < product.stockQuantity
                                     ) {
                                         Text("+", style = MaterialTheme.typography.headlineSmall)
                                     }
@@ -180,9 +180,9 @@ fun ProductDetailScreen(
 
                             Spacer(modifier = Modifier.height(16.dp))
 
-                            if (product.stock > 0) {
+                            if (product.stockQuantity > 0) {
                                 Text(
-                                    text = "В наличии: ${product.stock} шт.",
+                                    text = "В наличии: ${product.stockQuantity} шт.",
                                     style = MaterialTheme.typography.bodyLarge,
                                     color = MaterialTheme.colorScheme.tertiary
                                 )

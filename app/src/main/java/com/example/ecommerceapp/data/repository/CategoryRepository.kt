@@ -33,4 +33,43 @@ class CategoryRepository @Inject constructor(
             Resource.Error(e.message ?: "Network error")
         }
     }
+
+    suspend fun createCategory(category: CategoryCreateDTO): Resource<CategoryDTO> {
+        return try {
+            val response = api.createCategory(category)
+            if (response.isSuccessful && response.body() != null) {
+                Resource.Success(response.body()!!)
+            } else {
+                Resource.Error(response.message() ?: "Failed to create category")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
+        }
+    }
+
+    suspend fun updateCategory(id: Int, category: CategoryUpdateDTO): Resource<Unit> {
+        return try {
+            val response = api.updateCategory(id, category)
+            if (response.isSuccessful) {
+                Resource.Success(Unit)
+            } else {
+                Resource.Error(response.message() ?: "Failed to update category")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
+        }
+    }
+
+    suspend fun deleteCategory(id: Int): Resource<Unit> {
+        return try {
+            val response = api.deleteCategory(id)
+            if (response.isSuccessful) {
+                Resource.Success(Unit)
+            } else {
+                Resource.Error(response.message() ?: "Failed to delete category")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
+        }
+    }
 }
