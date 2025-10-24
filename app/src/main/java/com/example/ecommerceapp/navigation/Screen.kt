@@ -12,6 +12,10 @@ sealed class Screen(val route: String) {
     object Cart : Screen("cart")
     object Checkout : Screen("checkout")
     object Profile : Screen("profile")
+    object Orders : Screen("orders")
+    object OrderDetail : Screen("order/{orderId}") {
+        fun createRoute(orderId: Int) = "order/$orderId"
+    }
 
     // Admin screens
     object AdminDashboard : Screen("admin/dashboard")
@@ -19,7 +23,6 @@ sealed class Screen(val route: String) {
     object AdminProductEdit : Screen("admin/products/{productId}") {
         fun createRoute(productId: Int) = "admin/products/$productId"
     }
-
     object AdminCategories : Screen("admin/categories")
     object AdminReviews : Screen("admin/reviews")
 }

@@ -26,6 +26,15 @@ fun CheckoutScreen(
     var phone by remember { mutableStateOf("") }
     var selectedPayment by remember { mutableStateOf("card") }
 
+    // Показываем ошибку если она есть
+    LaunchedEffect(state.error) {
+        state.error?.let {
+            // Можно показать Snackbar или Toast
+            // Пока просто очищаем ошибку
+            viewModel.clearError()
+        }
+    }
+
     LaunchedEffect(state.orderCompleted) {
         if (state.orderCompleted) {
             onOrderComplete()
@@ -50,6 +59,16 @@ fun CheckoutScreen(
                         .fillMaxWidth()
                         .padding(16.dp)
                 ) {
+                    // Показываем ошибку если есть
+                    state.error?.let { error ->
+                        Text(
+                            text = error,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+                    }
+
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
@@ -104,7 +123,8 @@ fun CheckoutScreen(
                     value = name,
                     onValueChange = { name = it },
                     label = { Text("Имя") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
                 )
             }
 
@@ -113,7 +133,8 @@ fun CheckoutScreen(
                     value = phone,
                     onValueChange = { phone = it },
                     label = { Text("Телефон") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
                 )
             }
 
@@ -158,7 +179,7 @@ fun CheckoutScreen(
             }
 
             item {
-                Divider()
+                HorizontalDivider()
                 Text(
                     "Ваш заказ",
                     style = MaterialTheme.typography.titleLarge
@@ -171,7 +192,7 @@ fun CheckoutScreen(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text("${item.name} x${item.quantity}")
-                    Text("${item.price * item.quantity} ₽")
+                    Text(String.format("%.2f ₽", item.price * item.quantity))
                 }
             }
         }

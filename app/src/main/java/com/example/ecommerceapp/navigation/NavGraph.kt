@@ -16,6 +16,8 @@ import com.example.ecommerceapp.ui.auth.register.RegisterScreen
 import com.example.ecommerceapp.ui.customer.cart.CartScreen
 import com.example.ecommerceapp.ui.customer.checkout.CheckoutScreen
 import com.example.ecommerceapp.ui.customer.home.HomeScreen
+import com.example.ecommerceapp.ui.customer.orders.OrderDetailScreen
+import com.example.ecommerceapp.ui.customer.orders.OrdersScreen
 import com.example.ecommerceapp.ui.customer.product.ProductDetailScreen
 import com.example.ecommerceapp.ui.customer.profile.ProfileScreen
 
@@ -84,8 +86,8 @@ fun NavGraph(
             CheckoutScreen(
                 onNavigateBack = { navController.popBackStack() },
                 onOrderComplete = {
-                    navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.Home.route) { inclusive = true }
+                    navController.navigate(Screen.Orders.route) {
+                        popUpTo(Screen.Home.route) { inclusive = false }
                     }
                 }
             )
@@ -94,11 +96,32 @@ fun NavGraph(
         composable(Screen.Profile.route) {
             ProfileScreen(
                 onNavigateBack = { navController.popBackStack() },
+                onNavigateToOrders = { navController.navigate(Screen.Orders.route) },
                 onLogout = {
                     navController.navigate(Screen.Login.route) {
                         popUpTo(0) { inclusive = true }
                     }
                 }
+            )
+        }
+
+        composable(Screen.Orders.route) {
+            OrdersScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onOrderClick = { orderId ->
+                    navController.navigate(Screen.OrderDetail.createRoute(orderId))
+                }
+            )
+        }
+
+        composable(
+            route = Screen.OrderDetail.route,
+            arguments = listOf(navArgument("orderId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val orderId = backStackEntry.arguments?.getInt("orderId") ?: 0
+            OrderDetailScreen(
+                orderId = orderId,
+                onNavigateBack = { navController.popBackStack() }
             )
         }
 

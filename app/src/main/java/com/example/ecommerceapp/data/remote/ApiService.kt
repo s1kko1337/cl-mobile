@@ -94,4 +94,27 @@ interface ApiService {
     suspend fun deleteReview(
         @Path("productId") productId: Int,
         @Path("id") id: Int
-    ): Response<Unit>}
+    ): Response<Unit>
+
+    // Orders
+    @GET("api/orders")
+    suspend fun getOrders(): Response<List<OrderDTO>>
+
+    @GET("api/orders/{id}")
+    suspend fun getOrder(@Path("id") id: Int): Response<OrderDTO>
+
+    @GET("api/orders/user/{userId}")
+    suspend fun getOrdersByUser(@Path("userId") userId: Int): Response<List<OrderDTO>>
+
+    @POST("api/orders")
+    suspend fun createOrder(@Body order: OrderCreateDTO): Response<OrderDTO>
+
+    @PUT("api/orders/{id}")
+    suspend fun updateOrder(
+        @Path("id") id: Int,
+        @Body order: OrderUpdateDTO
+    ): Response<Unit>
+
+    @DELETE("api/orders/{id}")
+    suspend fun deleteOrder(@Path("id") id: Int): Response<Unit>
+}

@@ -1,6 +1,6 @@
 package com.example.ecommerceapp.ui.customer.profile
 
-
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -15,6 +15,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 @Composable
 fun ProfileScreen(
     onNavigateBack: () -> Unit,
+    onNavigateToOrders: () -> Unit,
     onLogout: () -> Unit,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
@@ -103,16 +104,17 @@ fun ProfileScreen(
                         headlineContent = { Text("Мои заказы") },
                         leadingContent = {
                             Icon(Icons.Default.ShoppingBag, contentDescription = null)
-                        }
+                        },
+                        modifier = Modifier.clickable { onNavigateToOrders() }
                     )
-                    Divider()
+                    HorizontalDivider()
                     ListItem(
                         headlineContent = { Text("Настройки") },
                         leadingContent = {
                             Icon(Icons.Default.Settings, contentDescription = null)
                         }
                     )
-                    Divider()
+                    HorizontalDivider()
                     ListItem(
                         headlineContent = { Text("О приложении") },
                         leadingContent = {
