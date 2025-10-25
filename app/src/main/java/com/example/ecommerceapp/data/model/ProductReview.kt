@@ -4,11 +4,11 @@ data class ProductReviewDTO(
     val id: Int,
     val productId: Int,
     val userId: Int,
-    val username: String,
+    val authorName: String,
     val rating: Int,
     val comment: String?,
+    val reviewImageUrl: String?,
     val createdAt: String,
-    val hasImage: Boolean
 )
 
 data class ProductReviewCreateDTO(

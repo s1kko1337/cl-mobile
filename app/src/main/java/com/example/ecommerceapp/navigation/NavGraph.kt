@@ -8,6 +8,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.ecommerceapp.ui.admin.categories.AdminCategoriesScreen
 import com.example.ecommerceapp.ui.admin.dashboard.AdminDashboardScreen
+import com.example.ecommerceapp.ui.admin.orders.AdminOrderDetailScreen
+import com.example.ecommerceapp.ui.admin.orders.AdminOrdersScreen
 import com.example.ecommerceapp.ui.admin.products.AdminProductEditScreen
 import com.example.ecommerceapp.ui.admin.products.AdminProductsScreen
 import com.example.ecommerceapp.ui.admin.reviews.AdminReviewsScreen
@@ -125,12 +127,12 @@ fun NavGraph(
             )
         }
 
-        // Admin screens
         composable(Screen.AdminDashboard.route) {
             AdminDashboardScreen(
                 onNavigateToProducts = { navController.navigate(Screen.AdminProducts.route) },
                 onNavigateToCategories = { navController.navigate(Screen.AdminCategories.route) },
                 onNavigateToReviews = { navController.navigate(Screen.AdminReviews.route) },
+                onNavigateToOrders = { navController.navigate(Screen.AdminOrders.route) },
                 onLogout = {
                     navController.navigate(Screen.Login.route) {
                         popUpTo(0) { inclusive = true }
@@ -167,6 +169,26 @@ fun NavGraph(
 
         composable(Screen.AdminReviews.route) {
             AdminReviewsScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.AdminOrders.route) {
+            AdminOrdersScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onOrderClick = { orderId ->
+                    navController.navigate(Screen.AdminOrderDetail.createRoute(orderId))
+                }
+            )
+        }
+
+        composable(
+            route = Screen.AdminOrderDetail.route,
+            arguments = listOf(navArgument("orderId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val orderId = backStackEntry.arguments?.getInt("orderId") ?: 0
+            AdminOrderDetailScreen(
+                orderId = orderId,
                 onNavigateBack = { navController.popBackStack() }
             )
         }

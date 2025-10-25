@@ -19,6 +19,7 @@ fun AdminDashboardScreen(
     onNavigateToProducts: () -> Unit,
     onNavigateToCategories: () -> Unit,
     onNavigateToReviews: () -> Unit,
+    onNavigateToOrders: () -> Unit,
     onLogout: () -> Unit,
     viewModel: AdminDashboardViewModel = hiltViewModel()
 ) {
@@ -198,6 +199,13 @@ fun AdminDashboardScreen(
                         title = "Обновить",
                         icon = Icons.Default.Refresh,
                         onClick = { viewModel.refresh() }
+                    )
+                }
+                item {
+                MenuCard(
+                        title = "Заказы",
+                        icon = Icons.Default.ShoppingBag,
+                        onClick = onNavigateToOrders
                     )
                 }
             }

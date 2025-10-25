@@ -71,9 +71,9 @@ class AdminCategoriesViewModel @Inject constructor(
         _state.update { it.copy(showAddDialog = false, editingCategory = null) }
     }
 
-    fun createCategory(name: String, description: String?, imageUrl: String?) {
+    fun createCategory(name: String, description: String?) {
         viewModelScope.launch {
-            val category = CategoryCreateDTO(name, description, imageUrl)
+            val category = CategoryCreateDTO(name, description)
             when (val result = categoryRepository.createCategory(category)) {
                 is Resource.Success -> {
                     loadCategories()
@@ -87,9 +87,9 @@ class AdminCategoriesViewModel @Inject constructor(
         }
     }
 
-    fun updateCategory(id: Int, name: String?, description: String?, imageUrl: String?) {
+    fun updateCategory(id: Int, name: String?, description: String?) {
         viewModelScope.launch {
-            val category = CategoryUpdateDTO(name, description, imageUrl)
+            val category = CategoryUpdateDTO(name, description)
             when (val result = categoryRepository.updateCategory(id, category)) {
                 is Resource.Success -> {
                     loadCategories()

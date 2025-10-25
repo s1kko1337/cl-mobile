@@ -34,13 +34,9 @@ class AdminReviewsViewModel @Inject constructor(
     private val _state = MutableStateFlow(AdminReviewsState())
     val state = _state.asStateFlow()
 
-    init {
-        loadData()
-    }
-
-    private fun loadData() {
+    fun loadData() {
         viewModelScope.launch {
-            _state.update { it.copy(isLoading = true) }
+            _state.update { it.copy(isLoading = true, error = null) }
 
             // Load products
             when (val productsResult = productRepository.getProducts()) {
@@ -62,8 +58,11 @@ class AdminReviewsViewModel @Inject constructor(
                                     )
                                 }
                             }
-                            is Resource.Error -> {}
-                            is Resource.Loading -> {}
+                            is Resource.Error -> {
+                                // Игнорируем ошибки для отдельных продуктов
+                            }
+
+                            is Resource.Loading<*> -> TODO()
                         }
                     }
 
@@ -83,7 +82,8 @@ class AdminReviewsViewModel @Inject constructor(
                         )
                     }
                 }
-                is Resource.Loading -> {}
+
+                is Resource.Loading<*> -> TODO()
             }
         }
     }
@@ -121,7 +121,8 @@ class AdminReviewsViewModel @Inject constructor(
                             )
                         }
                     }
-                    is Resource.Loading -> {}
+
+                    is Resource.Loading<*> -> TODO()
                 }
             }
         }
@@ -129,7 +130,7 @@ class AdminReviewsViewModel @Inject constructor(
 
     fun deleteReview(productId: Int, reviewId: Int) {
         viewModelScope.launch {
-            when (val result = reviewRepository.deleteReview(productId, reviewId)) {
+            when (reviewRepository.deleteReview(productId, reviewId)) {
                 is Resource.Success -> {
                     if (_state.value.selectedProductId != null) {
                         filterByProduct(_state.value.selectedProductId)
@@ -138,9 +139,10 @@ class AdminReviewsViewModel @Inject constructor(
                     }
                 }
                 is Resource.Error -> {
-                    _state.update { it.copy(error = result.message ?: "Ошибка удаления отзыва") }
+                    _state.update { it.copy(error = "Ошибка удаления отзыва") }
                 }
-                is Resource.Loading -> {}
+
+                is Resource.Loading<*> -> TODO()
             }
         }
     }

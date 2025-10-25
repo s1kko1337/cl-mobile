@@ -4,16 +4,19 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.ecommerceapp.data.model.ProductDTO
+import com.example.ecommerceapp.ui.components.ProductImage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -137,6 +140,17 @@ fun AdminProductCard(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
+            product.images?.firstOrNull()?.let { imageInfo ->
+                ProductImage(
+                    productId = product.id,
+                    imageInfo = imageInfo,
+                    modifier = Modifier
+                        .size(60.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                )
+                Spacer(Modifier.width(12.dp))
+            }
+
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = product.name,

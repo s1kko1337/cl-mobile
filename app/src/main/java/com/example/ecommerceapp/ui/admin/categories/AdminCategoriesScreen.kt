@@ -52,11 +52,11 @@ fun AdminCategoriesScreen(
         CategoryDialog(
             category = state.editingCategory,
             onDismiss = { viewModel.hideDialog() },
-            onSave = { name, description, imageUrl ->
+            onSave = { name, description ->
                 if (state.editingCategory != null) {
-                    viewModel.updateCategory(state.editingCategory!!.id, name, description, imageUrl)
+                    viewModel.updateCategory(state.editingCategory!!.id, name, description)
                 } else {
-                    viewModel.createCategory(name, description, imageUrl)
+                    viewModel.createCategory(name, description)
                 }
             }
         )
@@ -208,11 +208,10 @@ fun CategoryCard(
 fun CategoryDialog(
     category: CategoryDTO?,
     onDismiss: () -> Unit,
-    onSave: (String, String?, String?) -> Unit
+    onSave: (String, String?) -> Unit
 ) {
     var name by remember { mutableStateOf(category?.name ?: "") }
     var description by remember { mutableStateOf(category?.description ?: "") }
-    var imageUrl by remember { mutableStateOf(category?.imageUrl ?: "") }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -240,14 +239,6 @@ fun CategoryDialog(
                     minLines = 2,
                     maxLines = 4
                 )
-
-                OutlinedTextField(
-                    value = imageUrl,
-                    onValueChange = { imageUrl = it },
-                    label = { Text("URL изображения (опционально)") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
             }
         },
         confirmButton = {
@@ -255,8 +246,7 @@ fun CategoryDialog(
                 onClick = {
                     onSave(
                         name,
-                        description.takeIf { it.isNotBlank() },
-                        imageUrl.takeIf { it.isNotBlank() }
+                        description.takeIf { it.isNotBlank() }
                     )
                 },
                 enabled = name.isNotBlank()

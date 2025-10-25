@@ -4,14 +4,17 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.ecommerceapp.ui.components.ReviewImage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -22,13 +25,17 @@ fun AdminReviewsScreen(
     val state by viewModel.state.collectAsState()
     var reviewToDelete by remember { mutableStateOf<ReviewWithProduct?>(null) }
 
+    LaunchedEffect(Unit) {
+        viewModel.loadData()
+    }
+
     // Delete confirmation dialog
     if (reviewToDelete != null) {
         AlertDialog(
             onDismissRequest = { reviewToDelete = null },
             title = { Text("Удалить отзыв?") },
             text = {
-                Text("Вы уверены, что хотите удалить отзыв от ${reviewToDelete?.review?.username}?")
+                Text("Вы уверены, что хотите удалить отзыв от ${reviewToDelete?.review?.authorName ?: "пользователя"}?")
             },
             confirmButton = {
                 TextButton(
@@ -94,7 +101,7 @@ fun AdminReviewsScreen(
                         )
                     }
                 }
-                Divider()
+                HorizontalDivider()
             }
 
             when {
@@ -112,7 +119,10 @@ fun AdminReviewsScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(state.error ?: "Ошибка загрузки")
+                            Text(
+                                text = state.error ?: "Ошибка загрузки",
+                                color = MaterialTheme.colorScheme.error
+                            )
                             Spacer(modifier = Modifier.height(8.dp))
                             Button(onClick = { viewModel.refresh() }) {
                                 Text("Повторить")
@@ -125,13 +135,23 @@ fun AdminReviewsScreen(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            text = if (state.selectedProductId != null)
-                                "Нет отзывов для этого товара"
-                            else
-                                "Нет отзывов",
-                            style = MaterialTheme.typography.bodyLarge
-                        )
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(
+                                Icons.Default.Star,
+                                contentDescription = null,
+                                modifier = Modifier.size(64.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = if (state.selectedProductId != null)
+                                    "Нет отзывов для этого товара"
+                                else
+                                    "Нет отзывов",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
                 else -> {
@@ -222,7 +242,7 @@ fun AdminReviewCard(
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = reviewWithProduct.review.username,
+                        text = reviewWithProduct.review.authorName ?: "Неизвестный пользователь",
                         style = MaterialTheme.typography.titleMedium
                     )
                 }
@@ -252,10 +272,10 @@ fun AdminReviewCard(
                 }
             }
 
-            reviewWithProduct.review.comment?.let { comment ->
+            if (!reviewWithProduct.review.comment.isNullOrBlank()) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = comment,
+                    text = reviewWithProduct.review.comment,
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
@@ -268,28 +288,30 @@ fun AdminReviewCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = reviewWithProduct.review.createdAt,
+                    text = formatReviewDate(reviewWithProduct.review.createdAt),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
-                if (reviewWithProduct.review.hasImage) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            Icons.Default.Image,
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = "С фото",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+                reviewWithProduct.review.reviewImageUrl?.let {
+                    ReviewImage(
+                        productId = reviewWithProduct.review.productId,
+                        reviewId = reviewWithProduct.review.id,
+                        modifier = Modifier
+                            .size(80.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                    )
                 }
             }
         }
+    }
+}
+
+fun formatReviewDate(dateString: String): String {
+    return try {
+        val date = java.time.ZonedDateTime.parse(dateString)
+        date.format(java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"))
+    } catch (e: Exception) {
+        dateString
     }
 }

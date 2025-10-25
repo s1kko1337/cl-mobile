@@ -48,6 +48,19 @@ class OrderRepository @Inject constructor(
         }
     }
 
+    suspend fun updateOrderStatus(id: Int, order: OrderUpdateDTO): Resource<Unit> {
+        return try {
+            val response = api.updateOrder(id, order)
+            if (response.isSuccessful) {
+                Resource.Success(Unit)
+            } else {
+                Resource.Error(response.message() ?: "Failed to update order status")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
+        }
+    }
+
     suspend fun deleteOrder(id: Int): Resource<Unit> {
         return try {
             val response = api.deleteOrder(id)

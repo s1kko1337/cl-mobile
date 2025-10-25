@@ -3,6 +3,7 @@ package com.example.ecommerceapp.data.remote
 import com.example.ecommerceapp.data.model.*
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
+import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.*
 
@@ -73,6 +74,24 @@ interface ApiService {
         @Path("id") id: Int
     ): Response<Unit>
 
+
+    @GET("api/products/{productId}/images/info")
+    suspend fun getProductImagesInfo(@Path("productId") productId: Int): Response<List<ProductImageDTO>>
+
+    @GET("api/products/{productId}/images/{id}/download")
+    @Streaming
+    suspend fun downloadProductImage(
+        @Path("productId") productId: Int,
+        @Path("id") imageId: Int
+    ): Response<ResponseBody>
+
+    @GET("api/products/{productId}/reviews/{id}/image/download")
+    @Streaming
+    suspend fun downloadReviewImage(
+        @Path("productId") productId: Int,
+        @Path("id") reviewId: Int
+    ): Response<ResponseBody>
+
     // Product Reviews
     @GET("api/products/{productId}/reviews")
     suspend fun getProductReviews(@Path("productId") productId: Int): Response<List<ProductReviewDTO>>
@@ -95,6 +114,7 @@ interface ApiService {
         @Path("productId") productId: Int,
         @Path("id") id: Int
     ): Response<Unit>
+
 
     // Orders
     @GET("api/orders")

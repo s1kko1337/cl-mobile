@@ -15,7 +15,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.ecommerceapp.data.model.ProductReviewDTO
-import coil3.compose.AsyncImage
+import com.example.ecommerceapp.ui.components.ProductImage
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -119,19 +121,19 @@ fun ProductDetailScreen(
                         .fillMaxSize()
                         .padding(padding)
                 ) {
-                    // Images
                     if (!product.images.isNullOrEmpty()) {
                         item {
                             LazyRow(
-                                contentPadding = PaddingValues(16.dp),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
                                 items(product.images) { image ->
-                                    AsyncImage(
-                                        model = image.imageUrl,
-                                        contentDescription = image.altText,
-                                        modifier = Modifier.size(300.dp),
-                                        contentScale = ContentScale.Crop
+                                    ProductImage(
+                                        productId = product.id,
+                                        imageInfo = image,
+                                        modifier = Modifier
+                                            .size(width = 300.dp, height = 350.dp)
+                                            .clip(RoundedCornerShape(8.dp))
                                     )
                                 }
                             }
@@ -244,7 +246,7 @@ fun ReviewItem(review: ProductReviewDTO) {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = review.username,
+                    text = review.authorName,
                     style = MaterialTheme.typography.titleMedium
                 )
                 Row {

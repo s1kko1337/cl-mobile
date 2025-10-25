@@ -4,17 +4,14 @@ data class CategoryDTO(
     val id: Int,
     val name: String,
     val description: String?,
-    val imageUrl: String?
 )
 
 data class CategoryCreateDTO(
     val name: String,
     val description: String?,
-    val imageUrl: String?
 )
 
 data class CategoryUpdateDTO(
     val name: String?,
     val description: String?,
-    val imageUrl: String?
 )
