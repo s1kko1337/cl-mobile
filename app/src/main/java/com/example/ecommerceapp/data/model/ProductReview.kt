@@ -12,6 +12,8 @@ data class ProductReviewDTO(
 )
 
 data class ProductReviewCreateDTO(
+    val userId: Int,
+    val authorName: String,
     val rating: Int,
     val comment: String?
 )

@@ -1,8 +1,10 @@
 package com.example.ecommerceapp.ui.customer.product
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -16,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.ecommerceapp.data.model.ProductReviewDTO
 import com.example.ecommerceapp.ui.components.ProductImage
+import com.example.ecommerceapp.ui.components.ImageZoomDialog
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
 
@@ -29,12 +32,24 @@ fun ProductDetailScreen(
     val state by viewModel.state.collectAsState()
     var quantity by remember { mutableStateOf(1) }
     val snackbarHostState = remember { SnackbarHostState() }
+    var showImageDialog by remember { mutableStateOf(false) }
+    var selectedImageIndex by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(state.addedToCart) {
         if (state.addedToCart) {
             snackbarHostState.showSnackbar("Товар добавлен в корзину")
             viewModel.resetAddedToCart()
         }
+    }
+
+    // Image zoom dialog
+    if (showImageDialog && state.product?.images?.isNotEmpty() == true) {
+        ImageZoomDialog(
+            productId = state.product!!.id,
+            images = state.product!!.images!!,
+            initialPage = selectedImageIndex,
+            onDismiss = { showImageDialog = false }
+        )
     }
 
     Scaffold(
@@ -127,14 +142,23 @@ fun ProductDetailScreen(
                                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
                                 horizontalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
-                                items(product.images) { image ->
-                                    ProductImage(
-                                        productId = product.id,
-                                        imageInfo = image,
+                                itemsIndexed(product.images) { index, image ->
+                                    Box(
                                         modifier = Modifier
                                             .size(width = 300.dp, height = 350.dp)
                                             .clip(RoundedCornerShape(8.dp))
-                                    )
+                                            .clickable {
+                                                selectedImageIndex = index
+                                                showImageDialog = true
+                                            }
+                                    ) {
+                                        ProductImage(
+                                            productId = product.id,
+                                            imageInfo = image,
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentScale = ContentScale.Fit
+                                        )
+                                    }
                                 }
                             }
                         }

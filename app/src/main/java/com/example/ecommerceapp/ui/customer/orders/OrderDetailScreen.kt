@@ -12,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.ecommerceapp.ui.components.ReviewDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -22,6 +23,10 @@ fun OrderDetailScreen(
 ) {
     val state by viewModel.state.collectAsState()
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var showReviewDialog by remember { mutableStateOf(false) }
+    var selectedProductId by remember { mutableIntStateOf(0) }
+    var selectedProductName by remember { mutableStateOf("") }
+    val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(orderId) {
         viewModel.loadOrder(orderId)
@@ -30,6 +35,14 @@ fun OrderDetailScreen(
     LaunchedEffect(state.orderDeleted) {
         if (state.orderDeleted) {
             onNavigateBack()
+        }
+    }
+
+    LaunchedEffect(state.reviewSubmitted) {
+        if (state.reviewSubmitted) {
+            snackbarHostState.showSnackbar("Отзыв успешно отправлен")
+            viewModel.resetReviewSubmitted()
+            viewModel.loadOrder(orderId)
         }
     }
 
@@ -56,6 +69,17 @@ fun OrderDetailScreen(
         )
     }
 
+    if (showReviewDialog) {
+        ReviewDialog(
+            productName = selectedProductName,
+            onDismiss = { showReviewDialog = false },
+            onSubmit = { rating, comment ->
+                viewModel.submitReview(selectedProductId, rating, comment)
+                showReviewDialog = false
+            }
+        )
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -75,7 +99,8 @@ fun OrderDetailScreen(
                     }
                 }
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
         when {
             state.isLoading -> {
@@ -103,6 +128,8 @@ fun OrderDetailScreen(
             }
             state.order != null -> {
                 val order = state.order!!
+                val isCompleted = order.status == "Completed"
+
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
@@ -160,28 +187,56 @@ fun OrderDetailScreen(
 
                     items(order.orderItems) { item ->
                         Card(modifier = Modifier.fillMaxWidth()) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween
+                            Column(
+                                modifier = Modifier.padding(16.dp)
                             ) {
-                                Column(modifier = Modifier.weight(1f)) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = item.productName,
+                                            style = MaterialTheme.typography.titleSmall
+                                        )
+                                        Text(
+                                            text = "${item.priceAtPurchase} ₽ × ${item.quantity}",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
                                     Text(
-                                        text = item.productName,
-                                        style = MaterialTheme.typography.titleSmall
-                                    )
-                                    Text(
-                                        text = "${item.priceAtPurchase} ₽ × ${item.quantity}",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        text = String.format("%.2f ₽", item.subtotal),
+                                        style = MaterialTheme.typography.titleSmall,
+                                        color = MaterialTheme.colorScheme.primary
                                     )
                                 }
-                                Text(
-                                    text = String.format("%.2f ₽", item.subtotal),
-                                    style = MaterialTheme.typography.titleSmall,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
+
+                                // Review button for completed orders
+                                if (isCompleted) {
+                                    val hasReview = state.productReviews[item.productId] ?: false
+
+                                    Spacer(modifier = Modifier.height(12.dp))
+
+                                    if (hasReview) {
+                                        Text(
+                                            text = "Отзыв оставлен",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.tertiary
+                                        )
+                                    } else {
+                                        OutlinedButton(
+                                            onClick = {
+                                                selectedProductId = item.productId
+                                                selectedProductName = item.productName
+                                                showReviewDialog = true
+                                            },
+                                            modifier = Modifier.fillMaxWidth()
+                                        ) {
+                                            Text("Оценить товар")
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
