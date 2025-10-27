@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.ecommerceapp.data.model.OrderDTO
 import com.example.ecommerceapp.data.model.ProductReviewCreateDTO
+import com.example.ecommerceapp.data.model.ProductReviewDTO
+import com.example.ecommerceapp.data.model.ProductReviewUpdateDTO
 import com.example.ecommerceapp.data.repository.OrderRepository
 import com.example.ecommerceapp.data.repository.ReviewRepository
 import com.example.ecommerceapp.util.Resource
@@ -12,6 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.io.File
 import javax.inject.Inject
 
 data class OrderDetailState(
@@ -19,7 +22,7 @@ data class OrderDetailState(
     val isLoading: Boolean = false,
     val error: String? = null,
     val orderDeleted: Boolean = false,
-    val productReviews: Map<Int, Boolean> = emptyMap(), // productId -> hasReview
+    val productReviews: Map<Int, ProductReviewDTO?> = emptyMap(), // productId -> review or null
     val reviewSubmitted: Boolean = false
 )
 
@@ -37,7 +40,6 @@ class OrderDetailViewModel @Inject constructor(
     private var currentUsername: String = ""
 
     init {
-        // Load current user data
         viewModelScope.launch {
             userPreferences.userId.collect { id ->
                 currentUserId = id ?: 0
@@ -64,7 +66,7 @@ class OrderDetailViewModel @Inject constructor(
                         )
                     }
 
-                    // Load reviews status for completed orders
+                    // Only load reviews if order is completed
                     if (order?.status == "Completed") {
                         loadProductReviews(order.orderItems.map { item -> item.productId })
                     }
@@ -84,17 +86,18 @@ class OrderDetailViewModel @Inject constructor(
 
     private fun loadProductReviews(productIds: List<Int>) {
         viewModelScope.launch {
-            val reviewsMap = mutableMapOf<Int, Boolean>()
+            val reviewsMap = mutableMapOf<Int, ProductReviewDTO?>()
 
             productIds.forEach { productId ->
                 when (val result = reviewRepository.getProductReviews(productId)) {
                     is Resource.Success -> {
-                        reviewsMap[productId] = result.data?.any { review ->
-                            review.userId == currentUserId
-                        } ?: false
+                        // Find review from current user
+                        reviewsMap[productId] = result.data?.find { review ->
+                            review.authorId == currentUserId
+                        }
                     }
                     is Resource.Error -> {
-                        reviewsMap[productId] = false
+                        reviewsMap[productId] = null
                     }
                     is Resource.Loading -> {}
                 }
@@ -109,10 +112,10 @@ class OrderDetailViewModel @Inject constructor(
             _state.update { it.copy(isLoading = true) }
 
             val reviewDto = ProductReviewCreateDTO(
-                userId = currentUserId,
+                authorId = currentUserId,
                 authorName = currentUsername,
                 rating = rating,
-                comment = comment.ifBlank { null }
+                comment = comment.ifBlank { "Без комментария" }
             )
 
             when (val result = reviewRepository.createReview(productId, reviewDto)) {
@@ -120,8 +123,95 @@ class OrderDetailViewModel @Inject constructor(
                     _state.update {
                         it.copy(
                             isLoading = false,
+                            reviewSubmitted = true
+                        )
+                    }
+                }
+                is Resource.Error -> {
+                    _state.update {
+                        it.copy(
+                            isLoading = false,
+                            error = result.message
+                        )
+                    }
+                }
+                is Resource.Loading -> {}
+            }
+        }
+    }
+
+    fun updateReview(
+        productId: Int,
+        reviewId: Int,
+        rating: Int,
+        comment: String,
+        imageFile: File? = null,
+        deleteImage: Boolean = false
+    ) {
+        viewModelScope.launch {
+            _state.update { it.copy(isLoading = true) }
+
+            val reviewDto = ProductReviewUpdateDTO(
+                authorName = currentUsername,
+                rating = rating,
+                comment = comment.ifBlank { "Без комментария" }
+            )
+
+            when (val result = reviewRepository.updateReview(productId, reviewId, reviewDto)) {
+                is Resource.Success -> {
+                    var imageError: String? = null
+
+                    // Handle image deletion first if requested
+                    if (deleteImage) {
+                        when (reviewRepository.deleteReviewImage(productId, reviewId)) {
+                            is Resource.Error -> {
+                                imageError = "Не удалось удалить изображение"
+                            }
+                            else -> {}
+                        }
+                    }
+
+                    // Handle image upload if provided
+                    if (imageFile != null) {
+                        when (reviewRepository.uploadReviewImage(productId, reviewId, imageFile)) {
+                            is Resource.Error -> {
+                                imageError = "Не удалось загрузить изображение"
+                            }
+                            else -> {}
+                        }
+                    }
+
+                    _state.update {
+                        it.copy(
+                            isLoading = false,
                             reviewSubmitted = true,
-                            productReviews = it.productReviews + (productId to true)
+                            error = imageError
+                        )
+                    }
+                }
+                is Resource.Error -> {
+                    _state.update {
+                        it.copy(
+                            isLoading = false,
+                            error = result.message
+                        )
+                    }
+                }
+                is Resource.Loading -> {}
+            }
+        }
+    }
+
+    fun deleteReview(productId: Int, reviewId: Int) {
+        viewModelScope.launch {
+            _state.update { it.copy(isLoading = true) }
+
+            when (val result = reviewRepository.deleteReview(productId, reviewId)) {
+                is Resource.Success -> {
+                    _state.update {
+                        it.copy(
+                            isLoading = false,
+                            reviewSubmitted = true
                         )
                     }
                 }

@@ -41,7 +41,7 @@ fun AdminReviewsScreen(
                 TextButton(
                     onClick = {
                         reviewToDelete?.let {
-                            viewModel.deleteReview(it.review.productId, it.review.id)
+                            viewModel.deleteReview(it.productId, it.review.id)
                         }
                         reviewToDelete = null
                     }
@@ -295,7 +295,7 @@ fun AdminReviewCard(
 
                 reviewWithProduct.review.reviewImageUrl?.let {
                     ReviewImage(
-                        productId = reviewWithProduct.review.productId,
+                        productId = reviewWithProduct.productId,
                         reviewId = reviewWithProduct.review.id,
                         modifier = Modifier
                             .size(80.dp)

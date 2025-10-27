@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.ecommerceapp.data.model.ProductReviewDTO
 import com.example.ecommerceapp.ui.components.ProductImage
+import com.example.ecommerceapp.ui.components.ReviewImage
 import com.example.ecommerceapp.ui.components.ImageZoomDialog
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
@@ -248,7 +249,9 @@ fun ProductDetailScreen(
                         }
 
                         items(state.reviews) { review ->
-                            ReviewItem(review)
+                            state.product?.let { product ->
+                                ReviewItem(productId = product.id, review = review)
+                            }
                         }
                     }
                 }
@@ -258,7 +261,7 @@ fun ProductDetailScreen(
 }
 
 @Composable
-fun ReviewItem(review: ProductReviewDTO) {
+fun ReviewItem(productId: Int, review: ProductReviewDTO) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -290,10 +293,21 @@ fun ReviewItem(review: ProductReviewDTO) {
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            review.comment?.let {
-                Text(
-                    text = it,
-                    style = MaterialTheme.typography.bodyMedium
+            Text(
+                text = review.comment,
+                style = MaterialTheme.typography.bodyMedium
+            )
+
+            // Display review image if available
+            review.reviewImageUrl?.let {
+                Spacer(modifier = Modifier.height(8.dp))
+                ReviewImage(
+                    productId = productId,
+                    reviewId = review.id,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
+                        .clip(RoundedCornerShape(8.dp))
                 )
             }
 

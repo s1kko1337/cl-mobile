@@ -14,7 +14,8 @@ import javax.inject.Inject
 
 data class ReviewWithProduct(
     val review: ProductReviewDTO,
-    val productName: String
+    val productName: String,
+    val productId: Int
 )
 
 data class AdminReviewsState(
@@ -53,7 +54,8 @@ class AdminReviewsViewModel @Inject constructor(
                                     allReviews.add(
                                         ReviewWithProduct(
                                             review = review,
-                                            productName = product.name
+                                            productName = product.name,
+                                            productId = product.id
                                         )
                                     )
                                 }
@@ -101,7 +103,8 @@ class AdminReviewsViewModel @Inject constructor(
                         val reviews = result.data?.map { review ->
                             ReviewWithProduct(
                                 review = review,
-                                productName = product?.name ?: "Unknown"
+                                productName = product?.name ?: "Unknown",
+                                productId = productId
                             )
                         } ?: emptyList()
 

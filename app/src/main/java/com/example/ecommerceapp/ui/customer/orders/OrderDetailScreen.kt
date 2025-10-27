@@ -13,6 +13,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.ecommerceapp.ui.components.ReviewDialog
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -23,9 +25,12 @@ fun OrderDetailScreen(
 ) {
     val state by viewModel.state.collectAsState()
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var showDeleteReviewDialog by remember { mutableStateOf(false) }
     var showReviewDialog by remember { mutableStateOf(false) }
     var selectedProductId by remember { mutableIntStateOf(0) }
     var selectedProductName by remember { mutableStateOf("") }
+    var isEditingReview by remember { mutableStateOf(false) }
+    var selectedReviewId by remember { mutableIntStateOf(0) }
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(orderId) {
@@ -40,7 +45,9 @@ fun OrderDetailScreen(
 
     LaunchedEffect(state.reviewSubmitted) {
         if (state.reviewSubmitted) {
-            snackbarHostState.showSnackbar("Отзыв успешно отправлен")
+            snackbarHostState.showSnackbar(
+                if (isEditingReview) "Отзыв успешно обновлен" else "Отзыв успешно отправлен"
+            )
             viewModel.resetReviewSubmitted()
             viewModel.loadOrder(orderId)
         }
@@ -69,12 +76,56 @@ fun OrderDetailScreen(
         )
     }
 
+    if (showDeleteReviewDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteReviewDialog = false },
+            title = { Text("Удалить отзыв") },
+            text = { Text("Вы уверены, что хотите удалить свой отзыв?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.deleteReview(selectedProductId, selectedReviewId)
+                        showDeleteReviewDialog = false
+                    }
+                ) {
+                    Text("Удалить", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteReviewDialog = false }) {
+                    Text("Отмена")
+                }
+            }
+        )
+    }
+
     if (showReviewDialog) {
+        val existingReview = state.productReviews[selectedProductId]
+
         ReviewDialog(
             productName = selectedProductName,
+            existingRating = existingReview?.rating,
+            existingComment = existingReview?.comment,
+            existingImageUrl = existingReview?.reviewImageUrl,
+            isEdit = isEditingReview,
             onDismiss = { showReviewDialog = false },
-            onSubmit = { rating, comment ->
-                viewModel.submitReview(selectedProductId, rating, comment)
+            onSubmit = { rating, comment, imageFile, deleteImage ->
+                if (isEditingReview) {
+                    viewModel.updateReview(
+                        productId = selectedProductId,
+                        reviewId = selectedReviewId,
+                        rating = rating,
+                        comment = comment,
+                        imageFile = imageFile,
+                        deleteImage = deleteImage
+                    )
+                } else {
+                    viewModel.submitReview(
+                        productId = selectedProductId,
+                        rating = rating,
+                        comment = comment
+                    )
+                }
                 showReviewDialog = false
             }
         )
@@ -214,21 +265,47 @@ fun OrderDetailScreen(
 
                                 // Review button for completed orders
                                 if (isCompleted) {
-                                    val hasReview = state.productReviews[item.productId] ?: false
+                                    val existingReview = state.productReviews[item.productId]
 
                                     Spacer(modifier = Modifier.height(12.dp))
 
-                                    if (hasReview) {
-                                        Text(
-                                            text = "Отзыв оставлен",
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.tertiary
-                                        )
+                                    if (existingReview != null) {
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
+                                            OutlinedButton(
+                                                onClick = {
+                                                    selectedProductId = item.productId
+                                                    selectedProductName = item.productName
+                                                    selectedReviewId = existingReview.id
+                                                    isEditingReview = true
+                                                    showReviewDialog = true
+                                                },
+                                                modifier = Modifier.weight(1f)
+                                            ) {
+                                                Text("Редактировать")
+                                            }
+                                            OutlinedButton(
+                                                onClick = {
+                                                    selectedProductId = item.productId
+                                                    selectedReviewId = existingReview.id
+                                                    showDeleteReviewDialog = true
+                                                },
+                                                modifier = Modifier.weight(1f),
+                                                colors = ButtonDefaults.outlinedButtonColors(
+                                                    contentColor = MaterialTheme.colorScheme.error
+                                                )
+                                            ) {
+                                                Text("Удалить")
+                                            }
+                                        }
                                     } else {
                                         OutlinedButton(
                                             onClick = {
                                                 selectedProductId = item.productId
                                                 selectedProductName = item.productName
+                                                isEditingReview = false
                                                 showReviewDialog = true
                                             },
                                             modifier = Modifier.fillMaxWidth()

@@ -137,4 +137,35 @@ interface ApiService {
 
     @DELETE("api/orders/{id}")
     suspend fun deleteOrder(@Path("id") id: Int): Response<Unit>
+
+    // Product Reviews
+
+    @GET("/api/products/{productId}/reviews/{id}")
+    suspend fun getProductReview(
+        @Path("productId") productId: Int,
+        @Path("id") reviewId: Int
+    ): Response<ProductReviewDTO>
+
+    // Review Images
+    @Multipart
+    @POST("/api/products/{productId}/reviews/{id}/image")
+    suspend fun uploadReviewImage(
+        @Path("productId") productId: Int,
+        @Path("id") reviewId: Int,
+        @Part file: MultipartBody.Part
+    ): Response<Unit>
+
+    @GET("/api/products/{productId}/reviews/{id}/image")
+    suspend fun getReviewImage(
+        @Path("productId") productId: Int,
+        @Path("id") reviewId: Int
+    ): Response<ResponseBody>
+
+
+    @DELETE("/api/products/{productId}/reviews/{id}/image")
+    suspend fun deleteReviewImage(
+        @Path("productId") productId: Int,
+        @Path("id") reviewId: Int
+    ): Response<Unit>
+
 }
