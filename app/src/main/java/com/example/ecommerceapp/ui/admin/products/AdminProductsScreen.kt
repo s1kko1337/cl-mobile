@@ -28,6 +28,17 @@ fun AdminProductsScreen(
     val state by viewModel.state.collectAsState()
     var productToDelete by remember { mutableStateOf<ProductDTO?>(null) }
 
+    // Диалог добавления товара
+    if (state.showAddDialog) {
+        AddProductDialog(
+            onDismiss = {
+                viewModel.hideAddDialog()
+                viewModel.refresh()
+            }
+        )
+    }
+
+    // Диалог удаления товара
     if (productToDelete != null) {
         AlertDialog(
             onDismissRequest = { productToDelete = null },
@@ -40,7 +51,7 @@ fun AdminProductsScreen(
                         productToDelete = null
                     }
                 ) {
-                    Text("Удалить")
+                    Text("Удалить", color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
@@ -76,7 +87,7 @@ fun AdminProductsScreen(
         }
     ) { padding ->
         when {
-            state.isLoading -> {
+            state.isLoading && state.products.isEmpty() -> {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -93,8 +104,20 @@ fun AdminProductsScreen(
                         .padding(padding),
                     contentAlignment = Alignment.Center
                 ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("Нет товаров")
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.ShoppingCart,
+                            contentDescription = null,
+                            modifier = Modifier.size(64.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            "Нет товаров",
+                            style = MaterialTheme.typography.titleMedium
+                        )
                         TextButton(onClick = { viewModel.showAddDialog() }) {
                             Text("Добавить первый товар")
                         }
@@ -109,7 +132,7 @@ fun AdminProductsScreen(
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    items(state.products) { product ->
+                    items(state.products, key = { it.id }) { product ->
                         AdminProductCard(
                             product = product,
                             onClick = { onProductClick(product.id) },
@@ -117,6 +140,20 @@ fun AdminProductsScreen(
                         )
                     }
                 }
+            }
+        }
+
+        // Показываем ошибку, если есть
+        state.error?.let { error ->
+            Snackbar(
+                modifier = Modifier.padding(16.dp),
+                action = {
+                    TextButton(onClick = { viewModel.refresh() }) {
+                        Text("Повторить")
+                    }
+                }
+            ) {
+                Text(error)
             }
         }
     }
@@ -163,14 +200,29 @@ fun AdminProductCard(
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.primary
                 )
-                Text(
-                    text = "Остаток: ${product.stockQuantity} шт.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = if (product.stockQuantity < 10)
-                        MaterialTheme.colorScheme.error
-                    else
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Остаток: ${product.stockQuantity} шт.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = if (product.stockQuantity < 10)
+                            MaterialTheme.colorScheme.error
+                        else
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = "•",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = "SKU: ${product.sku}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
 
             IconButton(onClick = onDelete) {
