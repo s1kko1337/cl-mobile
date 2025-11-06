@@ -11,26 +11,73 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.SavedStateHandle
 import com.example.ecommerceapp.data.model.DeliveryAddress
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     onNavigateBack: () -> Unit,
+    onNavigateToMap: () -> Unit,
+    savedStateHandle: SavedStateHandle,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
     var showAddDialog by remember { mutableStateOf(false) }
     var editingAddress by remember { mutableStateOf<Pair<Int, DeliveryAddress>?>(null) }
 
+    // Данные с карты
+    var pendingMapAddress by remember { mutableStateOf<String?>(null) }
+    var pendingMapLatitude by remember { mutableStateOf<Double?>(null) }
+    var pendingMapLongitude by remember { mutableStateOf<Double?>(null) }
+
+    // Получаем данные с карты
+    val selectedAddressFromMap = savedStateHandle.getStateFlow<String?>("selected_address", null).collectAsState()
+    val selectedLatitudeFromMap = savedStateHandle.getStateFlow<Double?>("selected_latitude", null).collectAsState()
+    val selectedLongitudeFromMap = savedStateHandle.getStateFlow<Double?>("selected_longitude", null).collectAsState()
+
+    // Обновляем временные переменные когда получаем данные с карты
+    LaunchedEffect(selectedAddressFromMap.value) {
+        selectedAddressFromMap.value?.let { mapAddress ->
+            pendingMapAddress = mapAddress
+            pendingMapLatitude = selectedLatitudeFromMap.value
+            pendingMapLongitude = selectedLongitudeFromMap.value
+            // Показываем диалог
+            showAddDialog = true
+            // Очищаем данные
+            savedStateHandle.remove<String>("selected_address")
+            savedStateHandle.remove<Double>("selected_latitude")
+            savedStateHandle.remove<Double>("selected_longitude")
+        }
+    }
+
     if (showAddDialog) {
         AddressDialog(
             title = "Добавить адрес",
-            onDismiss = { showAddDialog = false },
+            initialAddress = if (pendingMapAddress != null) {
+                DeliveryAddress(
+                    name = "",
+                    phone = "",
+                    address = pendingMapAddress ?: "",
+                    latitude = pendingMapLatitude,
+                    longitude = pendingMapLongitude,
+                    isDefault = false
+                )
+            } else null,
+            onDismiss = {
+                showAddDialog = false
+                pendingMapAddress = null
+                pendingMapLatitude = null
+                pendingMapLongitude = null
+            },
             onConfirm = { address ->
                 viewModel.addAddress(address)
                 showAddDialog = false
-            }
+                pendingMapAddress = null
+                pendingMapLatitude = null
+                pendingMapLongitude = null
+            },
+            onNavigateToMap = onNavigateToMap
         )
     }
 
@@ -42,7 +89,8 @@ fun SettingsScreen(
             onConfirm = { updatedAddress ->
                 viewModel.updateAddress(index, updatedAddress)
                 editingAddress = null
-            }
+            },
+            onNavigateToMap = onNavigateToMap
         )
     }
 
@@ -235,11 +283,14 @@ fun AddressDialog(
     title: String,
     initialAddress: DeliveryAddress? = null,
     onDismiss: () -> Unit,
-    onConfirm: (DeliveryAddress) -> Unit
+    onConfirm: (DeliveryAddress) -> Unit,
+    onNavigateToMap: () -> Unit
 ) {
     var name by remember { mutableStateOf(initialAddress?.name ?: "") }
     var phone by remember { mutableStateOf(initialAddress?.phone ?: "") }
     var address by remember { mutableStateOf(initialAddress?.address ?: "") }
+    var latitude by remember { mutableStateOf(initialAddress?.latitude) }
+    var longitude by remember { mutableStateOf(initialAddress?.longitude) }
     var isDefault by remember { mutableStateOf(initialAddress?.isDefault ?: false) }
 
     AlertDialog(
@@ -271,8 +322,26 @@ fun AddressDialog(
                     onValueChange = { address = it },
                     label = { Text("Адрес доставки") },
                     modifier = Modifier.fillMaxWidth(),
-                    minLines = 3
+                    minLines = 3,
+                    trailingIcon = {
+                        IconButton(onClick = onNavigateToMap) {
+                            Icon(
+                                Icons.Default.Map,
+                                contentDescription = "Выбрать на карте",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
                 )
+
+                // Показываем координаты если есть
+                if (latitude != null && longitude != null) {
+                    Text(
+                        text = "Координаты: ${String.format("%.6f", latitude)}, ${String.format("%.6f", longitude)}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
 
                 Row(
                     verticalAlignment = Alignment.CenterVertically
@@ -294,6 +363,8 @@ fun AddressDialog(
                                 name = name,
                                 phone = phone,
                                 address = address,
+                                latitude = latitude,
+                                longitude = longitude,
                                 isDefault = isDefault
                             )
                         )

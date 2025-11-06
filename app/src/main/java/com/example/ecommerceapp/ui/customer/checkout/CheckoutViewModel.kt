@@ -114,4 +114,25 @@ class CheckoutViewModel @Inject constructor(
     fun clearError() {
         _state.update { it.copy(error = null) }
     }
+
+    fun saveDeliveryAddress(
+        name: String,
+        phone: String,
+        address: String,
+        latitude: Double?,
+        longitude: Double?,
+        setAsDefault: Boolean
+    ) {
+        viewModelScope.launch {
+            val deliveryAddress = DeliveryAddress(
+                name = name,
+                phone = phone,
+                address = address,
+                latitude = latitude,
+                longitude = longitude,
+                isDefault = setAsDefault
+            )
+            userPreferences.addDeliveryAddress(deliveryAddress)
+        }
+    }
 }

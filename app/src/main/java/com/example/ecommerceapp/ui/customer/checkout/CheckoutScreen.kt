@@ -35,6 +35,8 @@ fun CheckoutScreen(
     var selectedLongitude by remember { mutableStateOf<Double?>(null) }
     var selectedPayment by remember { mutableStateOf("card") }
     var showAddressSelector by remember { mutableStateOf(false) }
+    var saveAddress by remember { mutableStateOf(false) }
+    var setAsDefault by remember { mutableStateOf(false) }
 
     // Получаем данные с карты
     val selectedAddressFromMap = savedStateHandle.getStateFlow<String?>("selected_address", null).collectAsState()
@@ -139,6 +141,18 @@ fun CheckoutScreen(
 
                     Button(
                         onClick = {
+                            // Сохраняем адрес если нужно
+                            if (saveAddress) {
+                                viewModel.saveDeliveryAddress(
+                                    name = name,
+                                    phone = phone,
+                                    address = address,
+                                    latitude = selectedLatitude,
+                                    longitude = selectedLongitude,
+                                    setAsDefault = setAsDefault
+                                )
+                            }
+                            // Оформляем заказ
                             viewModel.placeOrder(name, address, phone, selectedPayment)
                         },
                         modifier = Modifier.fillMaxWidth(),
@@ -232,6 +246,40 @@ fun CheckoutScreen(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                }
+            }
+
+            // Опции сохранения адреса
+            item {
+                Column {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Checkbox(
+                            checked = saveAddress,
+                            onCheckedChange = {
+                                saveAddress = it
+                                if (!it) setAsDefault = false
+                            }
+                        )
+                        Text("Сохранить данные для следующих заказов")
+                    }
+
+                    if (saveAddress) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(start = 32.dp)
+                        ) {
+                            Checkbox(
+                                checked = setAsDefault,
+                                onCheckedChange = { setAsDefault = it }
+                            )
+                            Text("Использовать по умолчанию")
+                        }
+                    }
                 }
             }
 

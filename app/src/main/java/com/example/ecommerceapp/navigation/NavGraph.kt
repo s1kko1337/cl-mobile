@@ -114,9 +114,11 @@ fun NavGraph(
             )
         }
 
-        composable(Screen.Settings.route) {
+        composable(Screen.Settings.route) { backStackEntry ->
             SettingsScreen(
-                onNavigateBack = { navController.popBackStack() }
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToMap = { navController.navigate(Screen.MapAddressPicker.route) },
+                savedStateHandle = backStackEntry.savedStateHandle
             )
         }
 
