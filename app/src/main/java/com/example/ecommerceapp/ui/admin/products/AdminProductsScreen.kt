@@ -16,7 +16,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.ecommerceapp.data.model.ProductDTO
-import com.example.ecommerceapp.ui.components.ProductImage
+import com.example.ecommerceapp.ui.components.UnifiedProductImage
+import com.example.ecommerceapp.ui.components.ImageSizes
+import com.example.ecommerceapp.ui.components.ImageCorners
+import com.example.ecommerceapp.ui.components.ImageZoomDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -27,6 +30,18 @@ fun AdminProductsScreen(
 ) {
     val state by viewModel.state.collectAsState()
     var productToDelete by remember { mutableStateOf<ProductDTO?>(null) }
+    var showImageDialog by remember { mutableStateOf(false) }
+    var selectedProduct by remember { mutableStateOf<ProductDTO?>(null) }
+
+    // Image zoom dialog
+    if (showImageDialog && selectedProduct?.images?.isNotEmpty() == true) {
+        ImageZoomDialog(
+            productId = selectedProduct!!.id,
+            images = selectedProduct!!.images!!,
+            initialPage = 0,
+            onDismiss = { showImageDialog = false }
+        )
+    }
 
     if (productToDelete != null) {
         AlertDialog(
@@ -113,7 +128,11 @@ fun AdminProductsScreen(
                         AdminProductCard(
                             product = product,
                             onClick = { onProductClick(product.id) },
-                            onDelete = { productToDelete = product }
+                            onDelete = { productToDelete = product },
+                            onImageClick = {
+                                selectedProduct = product
+                                showImageDialog = true
+                            }
                         )
                     }
                 }
@@ -126,7 +145,8 @@ fun AdminProductsScreen(
 fun AdminProductCard(
     product: ProductDTO,
     onClick: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onImageClick: () -> Unit = {}
 ) {
     Card(
         modifier = Modifier
@@ -141,12 +161,12 @@ fun AdminProductCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             product.images?.firstOrNull()?.let { imageInfo ->
-                ProductImage(
+                UnifiedProductImage(
                     productId = product.id,
                     imageInfo = imageInfo,
-                    modifier = Modifier
-                        .size(60.dp)
-                        .clip(RoundedCornerShape(8.dp))
+                    size = ImageSizes.ExtraSmall,
+                    cornerRadius = ImageCorners.Small,
+                    onClick = onImageClick
                 )
                 Spacer(Modifier.width(12.dp))
             }

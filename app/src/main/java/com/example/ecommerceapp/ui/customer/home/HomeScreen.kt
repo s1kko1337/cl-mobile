@@ -1,5 +1,6 @@
 package com.example.ecommerceapp.ui.customer.home
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -18,9 +19,11 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import coil3.compose.AsyncImage
 import com.example.ecommerceapp.data.model.ProductDTO
-import com.example.ecommerceapp.ui.components.ProductImage
+import com.example.ecommerceapp.ui.components.ImageCorners
+import com.example.ecommerceapp.ui.components.ImageSizes
+import com.example.ecommerceapp.ui.components.UnifiedProductImage
+import com.example.ecommerceapp.ui.components.ImageZoomDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -31,6 +34,18 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
+    var showImageDialog by remember { mutableStateOf(false) }
+    var selectedProduct by remember { mutableStateOf<ProductDTO?>(null) }
+
+    // Image zoom dialog
+    if (showImageDialog && selectedProduct?.images?.isNotEmpty() == true) {
+        ImageZoomDialog(
+            productId = selectedProduct!!.id,
+            images = selectedProduct!!.images!!,
+            initialPage = 0,
+            onDismiss = { showImageDialog = false }
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -122,7 +137,11 @@ fun HomeScreen(
                         items(state.products) { product ->
                             ProductCard(
                                 product = product,
-                                onClick = { onProductClick(product.id) }
+                                onClick = { onProductClick(product.id) },
+                                onImageClick = {
+                                    selectedProduct = product
+                                    showImageDialog = true
+                                }
                             )
                         }
                     }
@@ -135,7 +154,8 @@ fun HomeScreen(
 @Composable
 fun ProductCard(
     product: ProductDTO,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onImageClick: () -> Unit = {}
 ) {
     Card(
         modifier = Modifier
@@ -150,19 +170,21 @@ fun ProductCard(
         ) {
             val imageInfo = product.images?.firstOrNull()
             if (imageInfo != null) {
-                ProductImage(
+                UnifiedProductImage(
                     productId = product.id,
                     imageInfo = imageInfo,
-                    modifier = Modifier
-                        .size(80.dp)
-                        .clip(RoundedCornerShape(8.dp))
+                    size = ImageSizes.Small,
+                    cornerRadius = ImageCorners.Small,
+                    contentScale = ContentScale.Crop,
+                    onClick = onImageClick
                 )
             } else {
                 Box(
                     modifier = Modifier
-                        .size(80.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                ) {}
+                        .size(ImageSizes.Small)
+                        .clip(ImageCorners.Small)
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                )
             }
 
             Spacer(modifier = Modifier.width(16.dp))

@@ -16,6 +16,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 fun ProfileScreen(
     onNavigateBack: () -> Unit,
     onNavigateToOrders: () -> Unit,
+    onNavigateToSettings: () -> Unit,
+    onNavigateToAbout: () -> Unit,
     onLogout: () -> Unit,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
@@ -112,14 +114,16 @@ fun ProfileScreen(
                         headlineContent = { Text("Настройки") },
                         leadingContent = {
                             Icon(Icons.Default.Settings, contentDescription = null)
-                        }
+                        },
+                        modifier = Modifier.clickable { onNavigateToSettings() }
                     )
                     HorizontalDivider()
                     ListItem(
                         headlineContent = { Text("О приложении") },
                         leadingContent = {
                             Icon(Icons.Default.Info, contentDescription = null)
-                        }
+                        },
+                        modifier = Modifier.clickable { onNavigateToAbout() }
                     )
                 }
             }

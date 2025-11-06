@@ -6,6 +6,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -20,7 +21,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.ecommerceapp.data.model.ProductImageDTO
-import com.example.ecommerceapp.ui.components.ProductImage
+import com.example.ecommerceapp.ui.components.UnifiedProductImage
+import com.example.ecommerceapp.ui.components.ImageSizes
+import com.example.ecommerceapp.ui.components.ImageCorners
+import com.example.ecommerceapp.ui.components.ImageZoomDialog
 import java.io.File
 import java.io.FileOutputStream
 
@@ -35,6 +39,18 @@ fun AdminProductEditScreen(
     val context = LocalContext.current
     var showDeleteDialog by remember { mutableStateOf(false) }
     var imageToDelete by remember { mutableStateOf<ProductImageDTO?>(null) }
+    var showImageDialog by remember { mutableStateOf(false) }
+    var selectedImageIndex by remember { mutableIntStateOf(0) }
+
+    // Image zoom dialog
+    if (showImageDialog && state.images.isNotEmpty()) {
+        ImageZoomDialog(
+            productId = productId,
+            images = state.images,
+            initialPage = selectedImageIndex,
+            onDismiss = { showImageDialog = false }
+        )
+    }
 
     // Лаунчер для выбора изображения
     val imagePickerLauncher = rememberLauncherForActivityResult(
@@ -221,11 +237,15 @@ fun AdminProductEditScreen(
                                     LazyRow(
                                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                                     ) {
-                                        items(state.images) { image ->
+                                        itemsIndexed(state.images) { index, image ->
                                             ProductImageCard(
                                                 productId = productId,
                                                 image = image,
-                                                onDelete = { imageToDelete = image }
+                                                onDelete = { imageToDelete = image },
+                                                onClick = {
+                                                    selectedImageIndex = index
+                                                    showImageDialog = true
+                                                }
                                             )
                                         }
                                     }
@@ -363,7 +383,8 @@ fun AdminProductEditScreen(
 fun ProductImageCard(
     productId: Int,
     image: ProductImageDTO,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onClick: () -> Unit = {}
 ) {
     Card(
         modifier = Modifier
@@ -371,10 +392,13 @@ fun ProductImageCard(
             .height(120.dp)
     ) {
         Box {
-            ProductImage(
+            UnifiedProductImage(
                 productId = productId,
                 imageInfo = image,
-                modifier = Modifier.fillMaxSize()
+                size = ImageSizes.Large,
+                cornerRadius = ImageCorners.Small,
+                modifier = Modifier.fillMaxSize(),
+                onClick = onClick
             )
 
             IconButton(

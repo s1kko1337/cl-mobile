@@ -18,8 +18,12 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.ecommerceapp.data.model.ProductReviewDTO
 import com.example.ecommerceapp.ui.components.ProductImage
-import com.example.ecommerceapp.ui.components.ReviewImage
+import com.example.ecommerceapp.ui.components.UnifiedProductImage
+import com.example.ecommerceapp.ui.components.UnifiedReviewImage
 import com.example.ecommerceapp.ui.components.ImageZoomDialog
+import com.example.ecommerceapp.ui.components.ReviewImageZoomDialog
+import com.example.ecommerceapp.ui.components.ImageSizes
+import com.example.ecommerceapp.ui.components.ImageCorners
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
 
@@ -35,6 +39,8 @@ fun ProductDetailScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     var showImageDialog by remember { mutableStateOf(false) }
     var selectedImageIndex by remember { mutableIntStateOf(0) }
+    var showReviewImageDialog by remember { mutableStateOf(false) }
+    var selectedReviewImage by remember { mutableStateOf<Pair<Int, Int>?>(null) }
 
     LaunchedEffect(state.addedToCart) {
         if (state.addedToCart) {
@@ -50,6 +56,15 @@ fun ProductDetailScreen(
             images = state.product!!.images!!,
             initialPage = selectedImageIndex,
             onDismiss = { showImageDialog = false }
+        )
+    }
+
+    // Review image zoom dialog
+    if (showReviewImageDialog && selectedReviewImage != null) {
+        ReviewImageZoomDialog(
+            productId = selectedReviewImage!!.first,
+            reviewId = selectedReviewImage!!.second,
+            onDismiss = { showReviewImageDialog = false }
         )
     }
 
@@ -250,7 +265,14 @@ fun ProductDetailScreen(
 
                         items(state.reviews) { review ->
                             state.product?.let { product ->
-                                ReviewItem(productId = product.id, review = review)
+                                ReviewItem(
+                                    productId = product.id,
+                                    review = review,
+                                    onImageClick = {
+                                        selectedReviewImage = Pair(product.id, review.id)
+                                        showReviewImageDialog = true
+                                    }
+                                )
                             }
                         }
                     }
@@ -261,7 +283,11 @@ fun ProductDetailScreen(
 }
 
 @Composable
-fun ReviewItem(productId: Int, review: ProductReviewDTO) {
+fun ReviewItem(
+    productId: Int,
+    review: ProductReviewDTO,
+    onImageClick: () -> Unit = {}
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -301,13 +327,13 @@ fun ReviewItem(productId: Int, review: ProductReviewDTO) {
             // Display review image if available
             review.reviewImageUrl?.let {
                 Spacer(modifier = Modifier.height(8.dp))
-                ReviewImage(
+                UnifiedReviewImage(
                     productId = productId,
                     reviewId = review.id,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp)
-                        .clip(RoundedCornerShape(8.dp))
+                    size = ImageSizes.ReviewHeight,
+                    cornerRadius = ImageCorners.Small,
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = onImageClick
                 )
             }
 

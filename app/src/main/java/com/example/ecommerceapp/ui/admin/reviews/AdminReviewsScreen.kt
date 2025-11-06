@@ -14,7 +14,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.ecommerceapp.ui.components.ReviewImage
+import com.example.ecommerceapp.ui.components.UnifiedReviewImage
+import com.example.ecommerceapp.ui.components.ImageSizes
+import com.example.ecommerceapp.ui.components.ImageCorners
+import com.example.ecommerceapp.ui.components.ReviewImageZoomDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -24,9 +27,20 @@ fun AdminReviewsScreen(
 ) {
     val state by viewModel.state.collectAsState()
     var reviewToDelete by remember { mutableStateOf<ReviewWithProduct?>(null) }
+    var showReviewImageDialog by remember { mutableStateOf(false) }
+    var selectedReviewImage by remember { mutableStateOf<Pair<Int, Int>?>(null) }
 
     LaunchedEffect(Unit) {
         viewModel.loadData()
+    }
+
+    // Review image zoom dialog
+    if (showReviewImageDialog && selectedReviewImage != null) {
+        ReviewImageZoomDialog(
+            productId = selectedReviewImage!!.first,
+            reviewId = selectedReviewImage!!.second,
+            onDismiss = { showReviewImageDialog = false }
+        )
     }
 
     // Delete confirmation dialog
@@ -210,7 +224,11 @@ fun AdminReviewsScreen(
                         items(state.reviews) { reviewWithProduct ->
                             AdminReviewCard(
                                 reviewWithProduct = reviewWithProduct,
-                                onDelete = { reviewToDelete = reviewWithProduct }
+                                onDelete = { reviewToDelete = reviewWithProduct },
+                                onImageClick = {
+                                    selectedReviewImage = Pair(reviewWithProduct.productId, reviewWithProduct.review.id)
+                                    showReviewImageDialog = true
+                                }
                             )
                         }
                     }
@@ -223,7 +241,8 @@ fun AdminReviewsScreen(
 @Composable
 fun AdminReviewCard(
     reviewWithProduct: ReviewWithProduct,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onImageClick: () -> Unit = {}
 ) {
     Card(
         modifier = Modifier.fillMaxWidth()
@@ -294,12 +313,12 @@ fun AdminReviewCard(
                 )
 
                 reviewWithProduct.review.reviewImageUrl?.let {
-                    ReviewImage(
+                    UnifiedReviewImage(
                         productId = reviewWithProduct.productId,
                         reviewId = reviewWithProduct.review.id,
-                        modifier = Modifier
-                            .size(80.dp)
-                            .clip(RoundedCornerShape(8.dp))
+                        size = ImageSizes.Small,
+                        cornerRadius = ImageCorners.Small,
+                        onClick = onImageClick
                     )
                 }
             }

@@ -2,7 +2,9 @@ package com.example.ecommerceapp.ui.customer.checkout
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.ecommerceapp.data.local.UserPreferences
 import com.example.ecommerceapp.data.model.CartItem
+import com.example.ecommerceapp.data.model.DeliveryAddress
 import com.example.ecommerceapp.data.model.OrderCreateDTO
 import com.example.ecommerceapp.data.model.OrderItemCreateDTO
 import com.example.ecommerceapp.data.repository.CartRepository
@@ -16,6 +18,7 @@ import javax.inject.Inject
 data class CheckoutState(
     val items: List<CartItem> = emptyList(),
     val total: Double = 0.0,
+    val savedAddresses: List<DeliveryAddress> = emptyList(),
     val isProcessing: Boolean = false,
     val orderCompleted: Boolean = false,
     val error: String? = null
@@ -24,7 +27,8 @@ data class CheckoutState(
 @HiltViewModel
 class CheckoutViewModel @Inject constructor(
     private val cartRepository: CartRepository,
-    private val orderRepository: OrderRepository
+    private val orderRepository: OrderRepository,
+    private val userPreferences: UserPreferences
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(CheckoutState())
@@ -39,6 +43,12 @@ class CheckoutViewModel @Inject constructor(
                         total = items.sumOf { item -> item.price * item.quantity }
                     )
                 }
+            }
+        }
+
+        viewModelScope.launch {
+            userPreferences.deliveryAddresses.collect { addresses ->
+                _state.update { it.copy(savedAddresses = addresses) }
             }
         }
     }

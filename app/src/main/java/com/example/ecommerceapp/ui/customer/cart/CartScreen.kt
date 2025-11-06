@@ -13,8 +13,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import coil3.compose.AsyncImage
 import com.example.ecommerceapp.data.model.CartItem
+import com.example.ecommerceapp.ui.components.ImageCorners
+import com.example.ecommerceapp.ui.components.ImageSizes
+import com.example.ecommerceapp.ui.components.UnifiedProductImageUrl
+import com.example.ecommerceapp.ui.components.ImageUrlZoomDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -24,6 +27,18 @@ fun CartScreen(
     viewModel: CartViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
+    var showImageDialog by remember { mutableStateOf(false) }
+    var selectedImageUrl by remember { mutableStateOf<String?>(null) }
+    var selectedImageName by remember { mutableStateOf<String?>(null) }
+
+    // Image zoom dialog
+    if (showImageDialog && selectedImageUrl != null) {
+        ImageUrlZoomDialog(
+            imageUrl = selectedImageUrl!!,
+            contentDescription = selectedImageName,
+            onDismiss = { showImageDialog = false }
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -104,7 +119,12 @@ fun CartScreen(
                         onQuantityChange = { newQuantity ->
                             viewModel.updateQuantity(item, newQuantity)
                         },
-                        onRemove = { viewModel.removeItem(item) }
+                        onRemove = { viewModel.removeItem(item) },
+                        onImageClick = {
+                            selectedImageUrl = item.imageUrl
+                            selectedImageName = item.name
+                            showImageDialog = true
+                        }
                     )
                 }
             }
@@ -116,7 +136,8 @@ fun CartScreen(
 fun CartItemCard(
     item: CartItem,
     onQuantityChange: (Int) -> Unit,
-    onRemove: () -> Unit
+    onRemove: () -> Unit,
+    onImageClick: () -> Unit = {}
 ) {
     Card(
         modifier = Modifier.fillMaxWidth()
@@ -125,11 +146,13 @@ fun CartItemCard(
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            AsyncImage(
-                model = item.imageUrl,
+            UnifiedProductImageUrl(
+                imageUrl = item.imageUrl,
                 contentDescription = item.name,
-                modifier = Modifier.size(80.dp),
-                contentScale = ContentScale.Crop
+                size = ImageSizes.Small,
+                cornerRadius = ImageCorners.Small,
+                contentScale = ContentScale.Crop,
+                onClick = onImageClick
             )
 
             Spacer(modifier = Modifier.width(16.dp))

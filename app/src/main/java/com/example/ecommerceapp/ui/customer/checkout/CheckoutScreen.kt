@@ -1,22 +1,29 @@
 package com.example.ecommerceapp.ui.customer.checkout
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Map
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.SavedStateHandle
+import com.example.ecommerceapp.data.model.DeliveryAddress
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CheckoutScreen(
     onNavigateBack: () -> Unit,
     onOrderComplete: () -> Unit,
+    onNavigateToMap: () -> Unit,
+    savedStateHandle: SavedStateHandle,
     viewModel: CheckoutViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -24,7 +31,40 @@ fun CheckoutScreen(
     var name by remember { mutableStateOf("") }
     var address by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
+    var selectedLatitude by remember { mutableStateOf<Double?>(null) }
+    var selectedLongitude by remember { mutableStateOf<Double?>(null) }
     var selectedPayment by remember { mutableStateOf("card") }
+    var showAddressSelector by remember { mutableStateOf(false) }
+
+    // Получаем данные с карты
+    val selectedAddressFromMap = savedStateHandle.getStateFlow<String?>("selected_address", null).collectAsState()
+    val selectedLatitudeFromMap = savedStateHandle.getStateFlow<Double?>("selected_latitude", null).collectAsState()
+    val selectedLongitudeFromMap = savedStateHandle.getStateFlow<Double?>("selected_longitude", null).collectAsState()
+
+    // Обновляем адрес когда получаем данные с карты
+    LaunchedEffect(selectedAddressFromMap.value) {
+        selectedAddressFromMap.value?.let { mapAddress ->
+            address = mapAddress
+            selectedLatitudeFromMap.value?.let { selectedLatitude = it }
+            selectedLongitudeFromMap.value?.let { selectedLongitude = it }
+            // Очищаем данные после использования
+            savedStateHandle.remove<String>("selected_address")
+            savedStateHandle.remove<Double>("selected_latitude")
+            savedStateHandle.remove<Double>("selected_longitude")
+        }
+    }
+
+    // Автоматически заполняем адрес по умолчанию при загрузке
+    LaunchedEffect(state.savedAddresses) {
+        val defaultAddress = state.savedAddresses.firstOrNull { it.isDefault }
+        if (defaultAddress != null && name.isBlank()) {
+            name = defaultAddress.name
+            phone = defaultAddress.phone
+            address = defaultAddress.address
+            selectedLatitude = defaultAddress.latitude
+            selectedLongitude = defaultAddress.longitude
+        }
+    }
 
     // Показываем ошибку если она есть
     LaunchedEffect(state.error) {
@@ -39,6 +79,20 @@ fun CheckoutScreen(
         if (state.orderCompleted) {
             onOrderComplete()
         }
+    }
+
+    // Диалог выбора адреса
+    if (showAddressSelector) {
+        AddressSelectorDialog(
+            addresses = state.savedAddresses,
+            onDismiss = { showAddressSelector = false },
+            onSelect = { selectedAddress ->
+                name = selectedAddress.name
+                phone = selectedAddress.phone
+                address = selectedAddress.address
+                showAddressSelector = false
+            }
+        )
     }
 
     Scaffold(
@@ -112,10 +166,23 @@ fun CheckoutScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {
-                Text(
-                    "Контактная информация",
-                    style = MaterialTheme.typography.titleLarge
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        "Контактная информация",
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                    if (state.savedAddresses.isNotEmpty()) {
+                        TextButton(onClick = { showAddressSelector = true }) {
+                            Icon(Icons.Default.LocationOn, contentDescription = null)
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Выбрать адрес")
+                        }
+                    }
+                }
             }
 
             item {
@@ -144,8 +211,28 @@ fun CheckoutScreen(
                     onValueChange = { address = it },
                     label = { Text("Адрес доставки") },
                     modifier = Modifier.fillMaxWidth(),
-                    minLines = 3
+                    minLines = 3,
+                    trailingIcon = {
+                        IconButton(onClick = onNavigateToMap) {
+                            Icon(
+                                Icons.Default.Map,
+                                contentDescription = "Выбрать на карте",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
                 )
+            }
+
+            // Показываем координаты если адрес выбран на карте
+            if (selectedLatitude != null && selectedLongitude != null) {
+                item {
+                    Text(
+                        text = "Координаты: ${String.format("%.6f", selectedLatitude)}, ${String.format("%.6f", selectedLongitude)}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
 
             item {
@@ -197,4 +284,68 @@ fun CheckoutScreen(
             }
         }
     }
+}
+
+@Composable
+fun AddressSelectorDialog(
+    addresses: List<DeliveryAddress>,
+    onDismiss: () -> Unit,
+    onSelect: (DeliveryAddress) -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Выберите адрес доставки") },
+        text = {
+            LazyColumn(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(addresses) { address ->
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onSelect(address) }
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    text = address.name,
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                                if (address.isDefault) {
+                                    Text(
+                                        text = "По умолчанию",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = address.phone,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            Text(
+                                text = address.address,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Отмена")
+            }
+        }
+    )
 }

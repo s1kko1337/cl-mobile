@@ -11,18 +11,22 @@ kotlin = "2.2.20"
 hilt = "2.57.2"
 coreKtx = "1.17.0"
 junit = "4.13.2"
-ksp = "2.2.10-2.0.2"
+kotlinxSerializationJson = "1.9.0"
+ksp = "2.2.20-2.0.4"
 junitVersion = "1.3.0"
 espressoCore = "3.7.0"
 lifecycleRuntimeKtx = "2.9.4"
 activityCompose = "1.11.0"
 composeBom = "2025.10.00"
 loggingInterceptor = "5.2.1"
-navigationCompose = "2.9.5"
-navigationZ = "2.9.5"
+navigationCompose = "2.9.6"
+navigationZ = "2.9.6"
 okhttp = "5.2.1"
 retrofitVersion = "3.0.0"
 roomKtx = "2.8.2"
+kotlinxSerialization = "1.9.26"
+yandexMaps = "4.8.1-lite"
+playServicesLocation = "21.3.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -59,14 +63,20 @@ androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
 hilt-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "hilt" }
+kotlinx-serialization-json-v190 = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 logging-interceptor = { module = "com.squareup.okhttp3:logging-interceptor", version.ref = "loggingInterceptor" }
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 retrofit-v300 = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofitVersion" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
+#noinspection Aligned16KB
+yandex-maps-mobile = { module = "com.yandex.android:maps.mobile", version.ref = "yandexMaps" }
+play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "playServicesLocation" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 android-library = { id = "com.android.library", version.ref = "agp" }
 hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }

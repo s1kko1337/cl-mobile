@@ -4,6 +4,7 @@ package com.example.ecommerceapp.ui.customer.product
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.ecommerceapp.BuildConfig
 import com.example.ecommerceapp.data.model.CartItem
 import com.example.ecommerceapp.data.model.ProductDTO
 import com.example.ecommerceapp.data.model.ProductReviewDTO
@@ -85,12 +86,22 @@ class ProductDetailViewModel @Inject constructor(
     fun addToCart(quantity: Int) {
         viewModelScope.launch {
             val product = _state.value.product ?: return@launch
+
+            // Формируем полный URL изображения с базовым адресом
+            val imageUrl = product.images?.firstOrNull()?.imageUrl?.let { relativeUrl ->
+                if (relativeUrl.startsWith("http")) {
+                    relativeUrl
+                } else {
+                    "${BuildConfig.BASE_URL}$relativeUrl"
+                }
+            }
+
             val cartItem = CartItem(
                 productId = product.id,
                 name = product.name,
                 price = product.price,
                 quantity = quantity,
-                imageUrl = product.images?.firstOrNull()?.imageUrl,
+                imageUrl = imageUrl,
                 stock = product.stockQuantity
             )
             cartRepository.addToCart(cartItem)

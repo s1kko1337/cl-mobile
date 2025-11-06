@@ -18,10 +18,13 @@ import com.example.ecommerceapp.ui.auth.register.RegisterScreen
 import com.example.ecommerceapp.ui.customer.cart.CartScreen
 import com.example.ecommerceapp.ui.customer.checkout.CheckoutScreen
 import com.example.ecommerceapp.ui.customer.home.HomeScreen
+import com.example.ecommerceapp.ui.customer.about.AboutScreen
+import com.example.ecommerceapp.ui.customer.map.MapAddressPickerScreen
 import com.example.ecommerceapp.ui.customer.orders.OrderDetailScreen
 import com.example.ecommerceapp.ui.customer.orders.OrdersScreen
 import com.example.ecommerceapp.ui.customer.product.ProductDetailScreen
 import com.example.ecommerceapp.ui.customer.profile.ProfileScreen
+import com.example.ecommerceapp.ui.customer.settings.SettingsScreen
 
 @Composable
 fun NavGraph(
@@ -84,14 +87,16 @@ fun NavGraph(
             )
         }
 
-        composable(Screen.Checkout.route) {
+        composable(Screen.Checkout.route) { backStackEntry ->
             CheckoutScreen(
                 onNavigateBack = { navController.popBackStack() },
                 onOrderComplete = {
                     navController.navigate(Screen.Orders.route) {
                         popUpTo(Screen.Home.route) { inclusive = false }
                     }
-                }
+                },
+                onNavigateToMap = { navController.navigate(Screen.MapAddressPicker.route) },
+                savedStateHandle = backStackEntry.savedStateHandle
             )
         }
 
@@ -99,11 +104,25 @@ fun NavGraph(
             ProfileScreen(
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToOrders = { navController.navigate(Screen.Orders.route) },
+                onNavigateToSettings = { navController.navigate(Screen.Settings.route) },
+                onNavigateToAbout = { navController.navigate(Screen.About.route) },
                 onLogout = {
                     navController.navigate(Screen.Login.route) {
                         popUpTo(0) { inclusive = true }
                     }
                 }
+            )
+        }
+
+        composable(Screen.Settings.route) {
+            SettingsScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.About.route) {
+            AboutScreen(
+                onNavigateBack = { navController.popBackStack() }
             )
         }
 
@@ -124,6 +143,28 @@ fun NavGraph(
             OrderDetailScreen(
                 orderId = orderId,
                 onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.MapAddressPicker.route) {
+            MapAddressPickerScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onAddressSelected = { address, latitude, longitude ->
+                    // Передаем данные обратно в CheckoutScreen через savedStateHandle
+                    navController.previousBackStackEntry?.savedStateHandle?.set(
+                        "selected_address",
+                        address
+                    )
+                    navController.previousBackStackEntry?.savedStateHandle?.set(
+                        "selected_latitude",
+                        latitude
+                    )
+                    navController.previousBackStackEntry?.savedStateHandle?.set(
+                        "selected_longitude",
+                        longitude
+                    )
+                    navController.popBackStack()
+                }
             )
         }
 

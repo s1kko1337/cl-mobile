@@ -12,10 +12,13 @@ sealed class Screen(val route: String) {
     object Cart : Screen("cart")
     object Checkout : Screen("checkout")
     object Profile : Screen("profile")
+    object Settings : Screen("settings")
+    object About : Screen("about")
     object Orders : Screen("orders")
     object OrderDetail : Screen("order/{orderId}") {
         fun createRoute(orderId: Int) = "order/$orderId"
     }
+    object MapAddressPicker : Screen("map/address-picker")
 
     // Admin screens
     object AdminDashboard : Screen("admin/dashboard")
