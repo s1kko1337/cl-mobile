@@ -27,6 +27,7 @@ roomKtx = "2.8.2"
 kotlinxSerialization = "1.9.26"
 yandexMaps = "4.8.1-lite"
 playServicesLocation = "21.3.0"
+foundation = "1.9.4"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -71,6 +72,7 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 #noinspection Aligned16KB
 yandex-maps-mobile = { module = "com.yandex.android:maps.mobile", version.ref = "yandexMaps" }
 play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "playServicesLocation" }
+androidx-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

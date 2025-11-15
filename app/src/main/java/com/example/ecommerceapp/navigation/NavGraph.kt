@@ -6,8 +6,10 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.example.ecommerceapp.ui.admin.analytics.AdminAnalyticsScreen
 import com.example.ecommerceapp.ui.admin.categories.AdminCategoriesScreen
 import com.example.ecommerceapp.ui.admin.dashboard.AdminDashboardScreen
+import com.example.ecommerceapp.ui.admin.export.AdminExportScreen
 import com.example.ecommerceapp.ui.admin.orders.AdminOrderDetailScreen
 import com.example.ecommerceapp.ui.admin.orders.AdminOrdersScreen
 import com.example.ecommerceapp.ui.admin.products.AdminProductEditScreen
@@ -176,11 +178,24 @@ fun NavGraph(
                 onNavigateToCategories = { navController.navigate(Screen.AdminCategories.route) },
                 onNavigateToReviews = { navController.navigate(Screen.AdminReviews.route) },
                 onNavigateToOrders = { navController.navigate(Screen.AdminOrders.route) },
+                onNavigateToAnalytics = { navController.navigate(Screen.AdminAnalytics.route) },
                 onLogout = {
                     navController.navigate(Screen.Login.route) {
                         popUpTo(0) { inclusive = true }
                     }
                 }
+            )
+        }
+
+        composable(Screen.AdminAnalytics.route) {
+            AdminAnalyticsScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.AdminExport.route) {
+            AdminExportScreen(
+                onNavigateBack = { navController.popBackStack() }
             )
         }
 

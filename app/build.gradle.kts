@@ -47,6 +47,7 @@ android {
     buildToolsVersion = "35.0.0"
 }
 dependencies {
+    implementation(libs.androidx.foundation)
     ksp(libs.hilt.compiler)
     ksp(libs.androidx.room.room.compiler)
     implementation(libs.androidx.room.runtime)

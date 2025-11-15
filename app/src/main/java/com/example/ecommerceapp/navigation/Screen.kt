@@ -32,4 +32,6 @@ sealed class Screen(val route: String) {
     object AdminOrderDetail : Screen("admin/orders/{orderId}") {
         fun createRoute(orderId: Int) = "admin/orders/$orderId"
     }
+    object AdminAnalytics : Screen("admin/analytics")
+    object AdminExport : Screen("admin/export")
 }

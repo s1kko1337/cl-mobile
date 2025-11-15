@@ -168,4 +168,108 @@ interface ApiService {
         @Path("id") reviewId: Int
     ): Response<Unit>
 
+    // Admin Reports - Аналитика
+    @GET("api/admin/reports/sales/daily")
+    suspend fun getDailySales(
+        @Query("days") days: Int = 30
+    ): Response<List<DailySalesReportDTO>>
+
+    @GET("api/admin/reports/sales/period")
+    suspend fun getPeriodSales(
+        @Query("from") from: String?,
+        @Query("to") to: String?
+    ): Response<PeriodSalesReportDTO>
+
+    @GET("api/admin/reports/revenue/monthly")
+    suspend fun getMonthlyRevenue(
+        @Query("months") months: Int = 12
+    ): Response<List<MonthlyRevenueDTO>>
+
+    @GET("api/admin/reports/top-products")
+    suspend fun getTopProducts(
+        @Query("limit") limit: Int = 10,
+        @Query("from") from: String?,
+        @Query("to") to: String?
+    ): Response<List<TopProductDTO>>
+
+    @GET("api/admin/reports/sales-by-category")
+    suspend fun getSalesByCategory(
+        @Query("from") from: String?,
+        @Query("to") to: String?
+    ): Response<List<CategorySalesDTO>>
+
+    @GET("api/admin/reports/payment-methods")
+    suspend fun getPaymentMethodStats(
+        @Query("from") from: String?,
+        @Query("to") to: String?
+    ): Response<List<PaymentMethodStatsDTO>>
+
+    // Admin Reports - Dashboard
+    @GET("api/admin/reports/dashboard")
+    suspend fun getDashboardSummary(): Response<DashboardSummaryDTO>
+
+    @GET("api/admin/reports/alerts")
+    suspend fun getDashboardAlerts(): Response<List<DashboardAlertDTO>>
+
+    // Admin Export - Экспорт данных
+    @GET("api/admin/export/products/csv")
+    @Streaming
+    suspend fun exportProductsCsv(): Response<ResponseBody>
+
+    @GET("api/admin/export/products/excel")
+    @Streaming
+    suspend fun exportProductsExcel(): Response<ResponseBody>
+
+    @GET("api/admin/export/orders/csv")
+    @Streaming
+    suspend fun exportOrdersCsv(
+        @Query("from") from: String?,
+        @Query("to") to: String?
+    ): Response<ResponseBody>
+
+    @GET("api/admin/export/orders/excel")
+    @Streaming
+    suspend fun exportOrdersExcel(
+        @Query("from") from: String?,
+        @Query("to") to: String?
+    ): Response<ResponseBody>
+
+    @GET("api/admin/export/sales-report/csv")
+    @Streaming
+    suspend fun exportSalesReportCsv(
+        @Query("from") from: String?,
+        @Query("to") to: String?
+    ): Response<ResponseBody>
+
+    @GET("api/admin/export/sales-report/excel")
+    @Streaming
+    suspend fun exportSalesReportExcel(
+        @Query("from") from: String?,
+        @Query("to") to: String?
+    ): Response<ResponseBody>
+
+    @GET("api/admin/export/top-products/csv")
+    @Streaming
+    suspend fun exportTopProductsCsv(
+        @Query("limit") limit: Int = 10,
+        @Query("from") from: String?,
+        @Query("to") to: String?
+    ): Response<ResponseBody>
+
+    @GET("api/admin/export/top-products/excel")
+    @Streaming
+    suspend fun exportTopProductsExcel(
+        @Query("limit") limit: Int = 10,
+        @Query("from") from: String?,
+        @Query("to") to: String?
+    ): Response<ResponseBody>
+
+    @GET("api/admin/export/inventory/csv")
+    @Streaming
+    suspend fun exportInventoryCsv(): Response<ResponseBody>
+
+    @GET("api/admin/export/inventory/excel")
+    @Streaming
+    suspend fun exportInventoryExcel(): Response<ResponseBody>
+
 }

@@ -2,49 +2,77 @@ package com.example.ecommerceapp.ui.admin.dashboard
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.ecommerceapp.data.model.DashboardAlertDTO
+import com.example.ecommerceapp.data.model.DashboardSummaryDTO
+import com.example.ecommerceapp.data.model.RecentOrderDTO
+import com.example.ecommerceapp.data.repository.AdminReportsRepository
 import com.example.ecommerceapp.data.repository.AuthRepository
-import com.example.ecommerceapp.data.repository.CategoryRepository
-import com.example.ecommerceapp.data.repository.ProductRepository
 import com.example.ecommerceapp.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-data class DashboardStats(
-    val totalProducts: Int = 0,
-    val totalCategories: Int = 0,
-    val lowStockProducts: Int = 0
+data class AdminDashboardState(
+    val isLoading: Boolean = false,
+    val error: String? = null,
+    val dashboardSummary: DashboardSummaryDTO? = null,
+    val alerts: List<DashboardAlertDTO> = emptyList()
 )
 
 @HiltViewModel
 class AdminDashboardViewModel @Inject constructor(
-    private val productRepository: ProductRepository,
-    private val categoryRepository: CategoryRepository,
+    private val reportsRepository: AdminReportsRepository,
     private val authRepository: AuthRepository
 ) : ViewModel() {
 
-    private val _stats = MutableStateFlow(DashboardStats())
-    val stats = _stats.asStateFlow()
+    private val _state = MutableStateFlow(AdminDashboardState())
+    val state = _state.asStateFlow()
 
     val username = authRepository.username
 
     init {
-        loadStats()
+        loadDashboard()
     }
 
-    private fun loadStats() {
+    private fun loadDashboard() {
         viewModelScope.launch {
-            val productsResult = productRepository.getProducts()
-            val categoriesResult = categoryRepository.getCategories()
+            _state.update { it.copy(isLoading = true, error = null) }
 
-            if (productsResult is Resource.Success && categoriesResult is Resource.Success) {
-                val products = productsResult.data ?: emptyList()
-                _stats.value = DashboardStats(
-                    totalProducts = products.size,
-                    totalCategories = categoriesResult.data?.size ?: 0,
-                    lowStockProducts = products.count { it.stockQuantity < 10 }
-                )
+            // Загружаем сводку dashboard
+            when (val summaryResult = reportsRepository.getDashboardSummary()) {
+                is Resource.Success -> {
+                    _state.update { it.copy(dashboardSummary = summaryResult.data) }
+                }
+                is Resource.Error -> {
+                    _state.update { it.copy(error = summaryResult.message) }
+                }
+                is Resource.Loading -> {
+                    // Уже в loading
+                }
+            }
+
+            // Загружаем алерты
+            when (val alertsResult = reportsRepository.getDashboardAlerts()) {
+                is Resource.Success -> {
+                    _state.update {
+                        it.copy(
+                            alerts = alertsResult.data ?: emptyList(),
+                            isLoading = false
+                        )
+                    }
+                }
+                is Resource.Error -> {
+                    _state.update {
+                        it.copy(
+                            error = alertsResult.message,
+                            isLoading = false
+                        )
+                    }
+                }
+                is Resource.Loading -> {
+                    // Уже в loading
+                }
             }
         }
     }
@@ -56,6 +84,6 @@ class AdminDashboardViewModel @Inject constructor(
     }
 
     fun refresh() {
-        loadStats()
+        loadDashboard()
     }
 }
