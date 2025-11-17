@@ -28,6 +28,7 @@ kotlinxSerialization = "1.9.26"
 yandexMaps = "4.8.1-lite"
 playServicesLocation = "21.3.0"
 foundation = "1.9.4"
+vico = "2.0.0-alpha.28"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -73,6 +74,9 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 yandex-maps-mobile = { module = "com.yandex.android:maps.mobile", version.ref = "yandexMaps" }
 play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "playServicesLocation" }
 androidx-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
+vico-compose = { module = "com.patrykandpatrick.vico:compose", version.ref = "vico" }
+vico-compose-m3 = { module = "com.patrykandpatrick.vico:compose-m3", version.ref = "vico" }
+vico-core = { module = "com.patrykandpatrick.vico:core", version.ref = "vico" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

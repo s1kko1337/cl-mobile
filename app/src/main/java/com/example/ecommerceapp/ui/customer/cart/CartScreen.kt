@@ -149,9 +149,9 @@ fun CartItemCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
         val imageInfo = ProductImageDTO(
-            id = item.imageId,
+            id = item.imageId ?: 0,
             productId = item.productId,
-            imageUrl = item.imageUrl,
+            imageUrl = item.imageUrl ?: "",
             altText = item.name,
             displayOrder = 0
         )

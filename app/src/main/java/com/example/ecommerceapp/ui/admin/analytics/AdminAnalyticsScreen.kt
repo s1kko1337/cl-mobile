@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.ecommerceapp.ui.components.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -134,6 +135,17 @@ fun SalesTab(
             }
         }
 
+        // График дневных продаж
+        item {
+            val chartData = state.dailySales.map {
+                it.date.substring(5, 10) to it.totalRevenue
+            }
+            DailySalesLineChart(
+                data = chartData,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+
         // Дневная статистика
         item {
             Text(
@@ -196,6 +208,17 @@ fun SalesTab(
             Text(
                 "Помесячная выручка",
                 style = MaterialTheme.typography.titleLarge
+            )
+        }
+
+        // График помесячной выручки
+        item {
+            val monthlyChartData = state.monthlyRevenue.map {
+                Triple(it.monthName, it.year, it.totalRevenue)
+            }
+            MonthlyRevenueBarChart(
+                data = monthlyChartData,
+                modifier = Modifier.fillMaxWidth()
             )
         }
 
@@ -275,6 +298,17 @@ fun TopProductsTab(
             Text(
                 "Самые продаваемые товары",
                 style = MaterialTheme.typography.titleLarge
+            )
+        }
+
+        // График топ товаров
+        item {
+            val topProductsChartData = state.topProducts.map {
+                it.productName to it.totalRevenue
+            }
+            TopProductsHorizontalBarChart(
+                data = topProductsChartData,
+                modifier = Modifier.fillMaxWidth()
             )
         }
 
@@ -373,6 +407,17 @@ fun CategorySalesTab(state: AdminAnalyticsState) {
             )
         }
 
+        // График продаж по категориям
+        item {
+            val categoryChartData = state.categorySales.map {
+                it.categoryName to it.totalRevenue
+            }
+            CategorySalesPieChart(
+                data = categoryChartData,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+
         items(state.categorySales) { category ->
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp)) {
@@ -438,6 +483,17 @@ fun PaymentMethodsTab(state: AdminAnalyticsState) {
             Text(
                 "Способы оплаты",
                 style = MaterialTheme.typography.titleLarge
+            )
+        }
+
+        // График способов оплаты
+        item {
+            val paymentChartData = state.paymentMethodStats.map {
+                Triple(it.paymentMethod, it.ordersCount, it.totalRevenue)
+            }
+            PaymentMethodsPieChart(
+                data = paymentChartData,
+                modifier = Modifier.fillMaxWidth()
             )
         }
 
