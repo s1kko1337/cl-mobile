@@ -14,8 +14,10 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.ecommerceapp.data.model.CartItem
+import com.example.ecommerceapp.data.model.ProductImageDTO
 import com.example.ecommerceapp.ui.components.ImageCorners
 import com.example.ecommerceapp.ui.components.ImageSizes
+import com.example.ecommerceapp.ui.components.UnifiedProductImage
 import com.example.ecommerceapp.ui.components.UnifiedProductImageUrl
 import com.example.ecommerceapp.ui.components.ImageUrlZoomDialog
 
@@ -146,14 +148,21 @@ fun CartItemCard(
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            UnifiedProductImageUrl(
-                imageUrl = item.imageUrl,
-                contentDescription = item.name,
-                size = ImageSizes.Small,
-                cornerRadius = ImageCorners.Small,
-                contentScale = ContentScale.Crop,
-                onClick = onImageClick
-            )
+        val imageInfo = ProductImageDTO(
+            id = item.imageId,
+            productId = item.productId,
+            imageUrl = item.imageUrl,
+            altText = item.name,
+            displayOrder = 0
+        )
+        UnifiedProductImage(
+            productId = item.productId,
+            imageInfo = imageInfo,
+            size = ImageSizes.Small,
+            cornerRadius = ImageCorners.Small,
+            contentScale = ContentScale.Crop,
+            onClick = onImageClick
+        )
 
             Spacer(modifier = Modifier.width(16.dp))
 

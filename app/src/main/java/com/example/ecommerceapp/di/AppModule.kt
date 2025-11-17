@@ -85,7 +85,9 @@ object AppModule {
             context,
             AppDatabase::class.java,
             "ecommerce_db"
-        ).build()
+        )
+            .addMigrations(AppDatabase.MIGRATION_1_2)
+            .build()
     }
 
     @Provides

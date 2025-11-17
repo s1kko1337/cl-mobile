@@ -87,8 +87,10 @@ class ProductDetailViewModel @Inject constructor(
         viewModelScope.launch {
             val product = _state.value.product ?: return@launch
 
+            val firstImage = product.images?.firstOrNull()
+
             // Формируем полный URL изображения с базовым адресом
-            val imageUrl = product.images?.firstOrNull()?.imageUrl?.let { relativeUrl ->
+            val imageUrl = firstImage?.imageUrl?.let { relativeUrl ->
                 if (relativeUrl.startsWith("http")) {
                     relativeUrl
                 } else {
@@ -102,6 +104,7 @@ class ProductDetailViewModel @Inject constructor(
                 price = product.price,
                 quantity = quantity,
                 imageUrl = imageUrl,
+                imageId = firstImage?.id,
                 stock = product.stockQuantity
             )
             cartRepository.addToCart(cartItem)
