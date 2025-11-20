@@ -13,6 +13,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.ecommerceapp.ui.components.*
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -23,6 +24,25 @@ fun AdminAnalyticsScreen(
     val state by viewModel.state.collectAsState()
     var selectedTab by remember { mutableStateOf(0) }
     val tabs = listOf("Продажи", "Товары", "Категории", "Оплата")
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Показываем Snackbar при успехе или ошибке генерации PDF
+    LaunchedEffect(state.pdfGenerationSuccess, state.pdfGenerationError) {
+        state.pdfGenerationSuccess?.let { message ->
+            snackbarHostState.showSnackbar(
+                message = message,
+                duration = SnackbarDuration.Long
+            )
+            viewModel.clearPdfMessages()
+        }
+        state.pdfGenerationError?.let { error ->
+            snackbarHostState.showSnackbar(
+                message = error,
+                duration = SnackbarDuration.Long
+            )
+            viewModel.clearPdfMessages()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -34,12 +54,27 @@ fun AdminAnalyticsScreen(
                     }
                 },
                 actions = {
+                    // Кнопка генерации PDF
+                    IconButton(
+                        onClick = { viewModel.generatePdfReport() },
+                        enabled = !state.isGeneratingPdf && !state.isLoading
+                    ) {
+                        if (state.isGeneratingPdf) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Icon(Icons.Default.PictureAsPdf, contentDescription = "Создать PDF отчет")
+                        }
+                    }
                     IconButton(onClick = { viewModel.refresh() }) {
                         Icon(Icons.Default.Refresh, contentDescription = "Обновить")
                     }
                 }
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
         Column(
             modifier = Modifier

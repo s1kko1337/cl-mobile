@@ -1,13 +1,19 @@
 package com.example.ecommerceapp.ui.admin.analytics
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.ecommerceapp.data.model.*
 import com.example.ecommerceapp.data.repository.AdminReportsRepository
+import com.example.ecommerceapp.util.PdfReportGenerator
 import com.example.ecommerceapp.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
 import javax.inject.Inject
 
 data class AdminAnalyticsState(
@@ -32,16 +38,24 @@ data class AdminAnalyticsState(
     // Выбранный период для фильтрации
     val selectedDays: Int = 30,
     val selectedMonths: Int = 12,
-    val topProductsLimit: Int = 10
+    val topProductsLimit: Int = 10,
+
+    // Состояние генерации PDF
+    val isGeneratingPdf: Boolean = false,
+    val pdfGenerationSuccess: String? = null,
+    val pdfGenerationError: String? = null
 )
 
 @HiltViewModel
 class AdminAnalyticsViewModel @Inject constructor(
-    private val reportsRepository: AdminReportsRepository
+    private val reportsRepository: AdminReportsRepository,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AdminAnalyticsState())
     val state = _state.asStateFlow()
+
+    private val pdfGenerator = PdfReportGenerator(context)
 
     init {
         loadAllAnalytics()
@@ -163,5 +177,53 @@ class AdminAnalyticsViewModel @Inject constructor(
 
     fun refresh() {
         loadAllAnalytics()
+    }
+
+    fun generatePdfReport() {
+        viewModelScope.launch {
+            _state.update { it.copy(
+                isGeneratingPdf = true,
+                pdfGenerationSuccess = null,
+                pdfGenerationError = null
+            ) }
+
+            try {
+                val file = withContext(Dispatchers.IO) {
+                    pdfGenerator.generateAnalyticsReport(
+                        dailySales = state.value.dailySales,
+                        monthlyRevenue = state.value.monthlyRevenue,
+                        topProducts = state.value.topProducts,
+                        categorySales = state.value.categorySales,
+                        paymentMethodStats = state.value.paymentMethodStats,
+                        selectedDays = state.value.selectedDays,
+                        topProductsLimit = state.value.topProductsLimit
+                    )
+                }
+
+                if (file != null) {
+                    _state.update { it.copy(
+                        isGeneratingPdf = false,
+                        pdfGenerationSuccess = "PDF отчет сохранен: ${file.name}"
+                    ) }
+                } else {
+                    _state.update { it.copy(
+                        isGeneratingPdf = false,
+                        pdfGenerationError = "Не удалось создать PDF отчет"
+                    ) }
+                }
+            } catch (e: Exception) {
+                _state.update { it.copy(
+                    isGeneratingPdf = false,
+                    pdfGenerationError = e.message ?: "Ошибка при создании PDF"
+                ) }
+            }
+        }
+    }
+
+    fun clearPdfMessages() {
+        _state.update { it.copy(
+            pdfGenerationSuccess = null,
+            pdfGenerationError = null
+        ) }
     }
 }
