@@ -27,7 +27,7 @@ class RegisterViewModel @Inject constructor(
     fun register( email: String, password: String) {
         viewModelScope.launch {
             _state.value = RegisterState(isLoading = true)
-            when (val result = authRepository.register(email, password)) {
+            when (val result = authRepository.register(username,email, password)) {
                 is Resource.Success -> {
                     _state.value = RegisterState(success = true)
                 }

@@ -51,7 +51,17 @@ fun RegisterScreen(
                 .padding(padding)
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+        )
+            OutlinedTextField(
+                value = username,
+                onValueChange = { username = it },
+                label = { Text("Имя пользователя") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+         {
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
