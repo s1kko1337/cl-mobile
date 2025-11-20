@@ -20,7 +20,6 @@ fun RegisterScreen(
     onRegisterSuccess: () -> Unit,
     viewModel: RegisterViewModel = hiltViewModel()
 ) {
-    var username by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
@@ -53,16 +52,6 @@ fun RegisterScreen(
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            OutlinedTextField(
-                value = username,
-                onValueChange = { username = it },
-                label = { Text("Имя пользователя") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
@@ -122,9 +111,9 @@ fun RegisterScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             Button(
-                onClick = { viewModel.register(username, email, password, selectedRole) },
+                onClick = { viewModel.register( email, password) },
                 modifier = Modifier.fillMaxWidth(),
-                enabled = !state.isLoading && username.isNotBlank() &&
+                enabled = !state.isLoading &&
                         email.isNotBlank() && password.isNotBlank() &&
                         password == confirmPassword
             ) {
