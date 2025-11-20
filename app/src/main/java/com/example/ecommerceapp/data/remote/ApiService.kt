@@ -15,6 +15,9 @@ interface ApiService {
     @POST("login")
     suspend fun login(@Body request: LoginRequest): Response<AuthResponse>
 
+    @POST("change-password")
+    suspend fun changePassword(@Body request: ChangePasswordRequest): Response<Unit>
+
     // Categories
     @GET("api/categories")
     suspend fun getCategories(): Response<List<CategoryDTO>>

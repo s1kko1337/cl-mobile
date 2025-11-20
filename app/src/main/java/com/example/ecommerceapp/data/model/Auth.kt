@@ -14,7 +14,7 @@ data class LoginRequest(
 
 data class UserData(
     val id: Int,
-    val login: String,
+    val username: String,
     val role: String,
 )
 
@@ -23,4 +23,10 @@ data class AuthResponse(
     val message: String,
     val user: UserData,
     val token: String
+)
+
+data class ChangePasswordRequest(
+    val currentPassword: String,
+    val newPassword: String,
+    val confirmPassword: String
 )

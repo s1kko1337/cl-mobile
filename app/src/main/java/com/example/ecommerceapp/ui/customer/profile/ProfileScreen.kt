@@ -2,12 +2,15 @@ package com.example.ecommerceapp.ui.customer.profile
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 
@@ -23,6 +26,124 @@ fun ProfileScreen(
 ) {
     val state by viewModel.state.collectAsState()
     var showLogoutDialog by remember { mutableStateOf(false) }
+    var showChangePasswordDialog by remember { mutableStateOf(false) }
+    var currentPassword by remember { mutableStateOf("") }
+    var newPassword by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
+
+    // Обработка успешной смены пароля
+    LaunchedEffect(state.changePasswordSuccess) {
+        if (state.changePasswordSuccess) {
+            showChangePasswordDialog = false
+            currentPassword = ""
+            newPassword = ""
+            confirmPassword = ""
+            viewModel.clearChangePasswordState()
+        }
+    }
+
+    // Диалог смены пароля
+    if (showChangePasswordDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                showChangePasswordDialog = false
+                currentPassword = ""
+                newPassword = ""
+                confirmPassword = ""
+                viewModel.clearChangePasswordState()
+            },
+            title = { Text("Смена пароля") },
+            text = {
+                Column {
+                    OutlinedTextField(
+                        value = currentPassword,
+                        onValueChange = { currentPassword = it },
+                        label = { Text("Текущий пароль") },
+                        visualTransformation = PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    OutlinedTextField(
+                        value = newPassword,
+                        onValueChange = { newPassword = it },
+                        label = { Text("Новый пароль") },
+                        visualTransformation = PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    OutlinedTextField(
+                        value = confirmPassword,
+                        onValueChange = { confirmPassword = it },
+                        label = { Text("Подтвердите пароль") },
+                        visualTransformation = PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        isError = newPassword != confirmPassword && confirmPassword.isNotEmpty()
+                    )
+
+                    if (newPassword != confirmPassword && confirmPassword.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            "Пароли не совпадают",
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+
+                    state.changePasswordError?.let { error ->
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            error,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.changePassword(currentPassword, newPassword, confirmPassword)
+                    },
+                    enabled = !state.isChangingPassword &&
+                            currentPassword.isNotBlank() &&
+                            newPassword.isNotBlank() &&
+                            newPassword == confirmPassword
+                ) {
+                    if (state.isChangingPassword) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(16.dp),
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text("Сменить")
+                    }
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        showChangePasswordDialog = false
+                        currentPassword = ""
+                        newPassword = ""
+                        confirmPassword = ""
+                        viewModel.clearChangePasswordState()
+                    }
+                ) {
+                    Text("Отмена")
+                }
+            }
+        )
+    }
 
     if (showLogoutDialog) {
         AlertDialog(
@@ -88,10 +209,18 @@ fun ProfileScreen(
                         style = MaterialTheme.typography.headlineSmall
                     )
 
+                    if (state.email.isNotEmpty()) {
+                        Text(
+                            text = state.email,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
                     Text(
                         text = if (state.role == "admin") "Администратор" else "Покупатель",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
             }
@@ -124,6 +253,14 @@ fun ProfileScreen(
                             Icon(Icons.Default.Info, contentDescription = null)
                         },
                         modifier = Modifier.clickable { onNavigateToAbout() }
+                    )
+                    HorizontalDivider()
+                    ListItem(
+                        headlineContent = { Text("Сменить пароль") },
+                        leadingContent = {
+                            Icon(Icons.Default.Lock, contentDescription = null)
+                        },
+                        modifier = Modifier.clickable { showChangePasswordDialog = true }
                     )
                 }
             }

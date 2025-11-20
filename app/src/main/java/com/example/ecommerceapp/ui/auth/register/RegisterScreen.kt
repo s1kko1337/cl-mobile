@@ -23,6 +23,7 @@ fun RegisterScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
+    var username by remember { mutableStateOf("") }
     var selectedRole by remember { mutableStateOf("customer") }
 
     val state by viewModel.state.collectAsState()
@@ -52,6 +53,7 @@ fun RegisterScreen(
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         )
+         {
             OutlinedTextField(
                 value = username,
                 onValueChange = { username = it },
@@ -61,7 +63,7 @@ fun RegisterScreen(
             )
 
             Spacer(modifier = Modifier.height(16.dp))
-         {
+
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
@@ -121,11 +123,11 @@ fun RegisterScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             Button(
-                onClick = { viewModel.register( email, password) },
+                onClick = { viewModel.register(username, email, password) },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = !state.isLoading &&
-                        email.isNotBlank() && password.isNotBlank() &&
-                        password == confirmPassword
+                        username.isNotBlank() && email.isNotBlank() &&
+                        password.isNotBlank() && password == confirmPassword
             ) {
                 if (state.isLoading) {
                     CircularProgressIndicator(
