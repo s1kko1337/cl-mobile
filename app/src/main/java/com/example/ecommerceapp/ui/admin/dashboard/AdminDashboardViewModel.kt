@@ -17,7 +17,10 @@ data class AdminDashboardState(
     val isLoading: Boolean = false,
     val error: String? = null,
     val dashboardSummary: DashboardSummaryDTO? = null,
-    val alerts: List<DashboardAlertDTO> = emptyList()
+    val alerts: List<DashboardAlertDTO> = emptyList(),
+    val isChangingPassword: Boolean = false,
+    val changePasswordSuccess: Boolean = false,
+    val changePasswordError: String? = null
 )
 
 @HiltViewModel
@@ -85,5 +88,42 @@ class AdminDashboardViewModel @Inject constructor(
 
     fun refresh() {
         loadDashboard()
+    }
+
+    fun changePassword(
+        currentPassword: String,
+        newPassword: String,
+        confirmPassword: String
+    ) {
+        viewModelScope.launch {
+            _state.update { it.copy(
+                isChangingPassword = true,
+                changePasswordError = null,
+                changePasswordSuccess = false
+            )}
+
+            when (val result = authRepository.changePassword(currentPassword, newPassword, confirmPassword)) {
+                is Resource.Success -> {
+                    _state.update { it.copy(
+                        isChangingPassword = false,
+                        changePasswordSuccess = true
+                    )}
+                }
+                is Resource.Error -> {
+                    _state.update { it.copy(
+                        isChangingPassword = false,
+                        changePasswordError = result.message
+                    )}
+                }
+                is Resource.Loading -> {}
+            }
+        }
+    }
+
+    fun clearChangePasswordState() {
+        _state.update { it.copy(
+            changePasswordSuccess = false,
+            changePasswordError = null
+        )}
     }
 }
