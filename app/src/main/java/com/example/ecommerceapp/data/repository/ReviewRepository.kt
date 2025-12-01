@@ -9,9 +9,23 @@ import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
 import javax.inject.Inject
 
+/**
+ * Репозиторий для работы с отзывами на продукты.
+ *
+ * Предоставляет методы для получения, создания, обновления и удаления отзывов,
+ * а также для работы с изображениями отзывов.
+ *
+ * @property api Сервис API для выполнения сетевых запросов
+ */
 class ReviewRepository @Inject constructor(
     private val api: ApiService
 ) {
+    /**
+     * Получает все отзывы на продукт.
+     *
+     * @param productId ID продукта
+     * @return Resource со списком ProductReviewDTO или сообщением об ошибке
+     */
     suspend fun getProductReviews(productId: Int): Resource<List<ProductReviewDTO>> {
         return try {
             val response = api.getProductReviews(productId)
@@ -25,6 +39,13 @@ class ReviewRepository @Inject constructor(
         }
     }
 
+    /**
+     * Создает новый отзыв на продукт.
+     *
+     * @param productId ID продукта
+     * @param review Данные для создания отзыва
+     * @return Resource с созданным ProductReviewDTO или сообщением об ошибке
+     */
     suspend fun createReview(productId: Int, review: ProductReviewCreateDTO): Resource<ProductReviewDTO> {
         return try {
             val response = api.createReview(productId, review)
@@ -38,6 +59,14 @@ class ReviewRepository @Inject constructor(
         }
     }
 
+    /**
+     * Обновляет существующий отзыв.
+     *
+     * @param productId ID продукта
+     * @param reviewId ID отзыва для обновления
+     * @param review Данные для обновления отзыва
+     * @return Resource с Unit или сообщением об ошибке
+     */
     suspend fun updateReview(
         productId: Int,
         reviewId: Int,
@@ -55,6 +84,13 @@ class ReviewRepository @Inject constructor(
         }
     }
 
+    /**
+     * Удаляет отзыв.
+     *
+     * @param productId ID продукта
+     * @param reviewId ID отзыва для удаления
+     * @return Resource с Unit или сообщением об ошибке
+     */
     suspend fun deleteReview(productId: Int, reviewId: Int): Resource<Unit> {
         return try {
             val response = api.deleteReview(productId, reviewId)
@@ -68,6 +104,14 @@ class ReviewRepository @Inject constructor(
         }
     }
 
+    /**
+     * Загружает изображение для отзыва.
+     *
+     * @param productId ID продукта
+     * @param reviewId ID отзыва
+     * @param imageFile Файл изображения для загрузки
+     * @return Resource с Unit или сообщением об ошибке
+     */
     suspend fun uploadReviewImage(
         productId: Int,
         reviewId: Int,
@@ -88,6 +132,13 @@ class ReviewRepository @Inject constructor(
         }
     }
 
+    /**
+     * Удаляет изображение отзыва.
+     *
+     * @param productId ID продукта
+     * @param reviewId ID отзыва
+     * @return Resource с Unit или сообщением об ошибке
+     */
     suspend fun deleteReviewImage(productId: Int, reviewId: Int): Resource<Unit> {
         return try {
             val response = api.deleteReviewImage(productId, reviewId)

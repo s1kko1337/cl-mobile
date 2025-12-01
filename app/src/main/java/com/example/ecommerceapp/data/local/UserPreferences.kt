@@ -12,6 +12,16 @@ import kotlinx.serialization.json.Json
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "user_prefs")
 
+/**
+ * Менеджер пользовательских настроек на основе DataStore.
+ *
+ * Управляет хранением данных аутентификации пользователя и адресов доставки.
+ * Использует DataStore Preferences API для асинхронного реактивного доступа к данным.
+ * Адреса доставки сериализуются в JSON для хранения.
+ *
+ * @property dataStore Экземпляр DataStore для доступа к хранилищу
+ * @property json Экземпляр Json для сериализации/десериализации адресов
+ */
 class UserPreferences(context: Context) {
     private val dataStore = context.dataStore
     private val json = Json { ignoreUnknownKeys = true }
@@ -25,12 +35,40 @@ class UserPreferences(context: Context) {
         val DELIVERY_ADDRESSES_KEY = stringPreferencesKey("delivery_addresses")
     }
 
+    /**
+     * Реактивный поток с токеном аутентификации пользователя.
+     */
     val authToken: Flow<String?> = dataStore.data.map { it[TOKEN_KEY] }
+
+    /**
+     * Реактивный поток с ID пользователя.
+     */
     val userId: Flow<Int?> = dataStore.data.map { it[USER_ID_KEY] }
+
+    /**
+     * Реактивный поток с ролью пользователя (admin/customer).
+     */
     val userRole: Flow<String?> = dataStore.data.map { it[ROLE_KEY] }
+
+    /**
+     * Реактивный поток с именем пользователя.
+     */
     val username: Flow<String?> = dataStore.data.map { it[USERNAME_KEY] }
+
+    /**
+     * Реактивный поток с email пользователя.
+     */
     val email: Flow<String?> = dataStore.data.map { it[EMAIL_KEY] }
 
+    /**
+     * Сохраняет данные аутентификации пользователя.
+     *
+     * @param token Токен аутентификации
+     * @param userId ID пользователя
+     * @param role Роль пользователя (admin/customer)
+     * @param username Имя пользователя
+     * @param email Email пользователя
+     */
     suspend fun saveAuthData(token: String, userId: Int, role: String, username: String, email: String) {
         dataStore.edit { prefs ->
             prefs[TOKEN_KEY] = token
@@ -41,13 +79,23 @@ class UserPreferences(context: Context) {
         }
     }
 
+    /**
+     * Очищает все данные аутентификации (выход из системы).
+     */
     suspend fun clearAuthData() {
         dataStore.edit { it.clear() }
     }
 
+    /**
+     * Реактивный поток, указывающий, авторизован ли пользователь.
+     */
     val isLoggedIn: Flow<Boolean> = dataStore.data.map { it[TOKEN_KEY] != null }
 
-    // Методы для работы с адресами доставки
+    /**
+     * Реактивный поток со списком всех адресов доставки пользователя.
+     *
+     * Адреса десериализуются из JSON. В случае ошибки возвращается пустой список.
+     */
     val deliveryAddresses: Flow<List<DeliveryAddress>> = dataStore.data.map { prefs ->
         val addressesJson = prefs[DELIVERY_ADDRESSES_KEY] ?: return@map emptyList()
         try {
@@ -57,12 +105,24 @@ class UserPreferences(context: Context) {
         }
     }
 
+    /**
+     * Сохраняет список адресов доставки, заменяя существующий.
+     *
+     * @param addresses Список адресов доставки для сохранения
+     */
     suspend fun saveDeliveryAddresses(addresses: List<DeliveryAddress>) {
         dataStore.edit { prefs ->
             prefs[DELIVERY_ADDRESSES_KEY] = json.encodeToString(addresses)
         }
     }
 
+    /**
+     * Добавляет новый адрес доставки к существующим.
+     *
+     * Если добавляемый адрес помечен как "по умолчанию", снимает этот флаг со всех остальных адресов.
+     *
+     * @param address Новый адрес доставки для добавления
+     */
     suspend fun addDeliveryAddress(address: DeliveryAddress) {
         val currentAddresses = deliveryAddresses.map { it }.toString()
         dataStore.edit { prefs ->
@@ -73,7 +133,6 @@ class UserPreferences(context: Context) {
                 mutableListOf()
             }
 
-            // Если новый адрес по умолчанию, сбрасываем флаг у остальных
             if (address.isDefault) {
                 addresses.replaceAll { it.copy(isDefault = false) }
             }
@@ -83,6 +142,14 @@ class UserPreferences(context: Context) {
         }
     }
 
+    /**
+     * Обновляет существующий адрес доставки по индексу.
+     *
+     * Если обновляемый адрес помечен как "по умолчанию", снимает этот флаг со всех остальных адресов.
+     *
+     * @param index Индекс адреса в списке для обновления
+     * @param address Новые данные адреса
+     */
     suspend fun updateDeliveryAddress(index: Int, address: DeliveryAddress) {
         dataStore.edit { prefs ->
             val addressesJson = prefs[DELIVERY_ADDRESSES_KEY] ?: "[]"
@@ -93,7 +160,6 @@ class UserPreferences(context: Context) {
             }
 
             if (index in addresses.indices) {
-                // Если новый адрес по умолчанию, сбрасываем флаг у остальных
                 if (address.isDefault) {
                     addresses.replaceAll { it.copy(isDefault = false) }
                 }
@@ -103,6 +169,11 @@ class UserPreferences(context: Context) {
         }
     }
 
+    /**
+     * Удаляет адрес доставки по индексу.
+     *
+     * @param index Индекс адреса в списке для удаления
+     */
     suspend fun deleteDeliveryAddress(index: Int) {
         dataStore.edit { prefs ->
             val addressesJson = prefs[DELIVERY_ADDRESSES_KEY] ?: "[]"

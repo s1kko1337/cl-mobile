@@ -11,29 +11,31 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 /**
- * Генератор PDF отчетов аналитики
+ * Генератор PDF отчётов аналитики для админ-панели.
+ *
+ * Создаёт многостраничные PDF документы с визуализацией статистики продаж,
+ * топовых товаров, продаж по категориям и способам оплаты.
+ * Включает графики, таблицы и диаграммы.
+ *
+ * @property context Контекст приложения для доступа к ресурсам
  */
 class PdfReportGenerator(private val context: Context) {
 
     companion object {
-        // Размер страницы A4 в пикселях (72 dpi)
         private const val PAGE_WIDTH = 595
         private const val PAGE_HEIGHT = 842
 
-        // Отступы
         private const val MARGIN_LEFT = 40f
         private const val MARGIN_TOP = 40f
         private const val MARGIN_RIGHT = 40f
         private const val MARGIN_BOTTOM = 40f
 
-        // Размеры шрифтов
         private const val TITLE_SIZE = 24f
         private const val HEADER_SIZE = 16f
         private const val SUBHEADER_SIZE = 14f
         private const val BODY_SIZE = 10f
         private const val SMALL_SIZE = 8f
 
-        // Цвета
         private val PRIMARY_COLOR = Color.parseColor("#6750A4")
         private val SECONDARY_COLOR = Color.parseColor("#625B71")
         private val TERTIARY_COLOR = Color.parseColor("#7D5260")
@@ -109,7 +111,19 @@ class PdfReportGenerator(private val context: Context) {
     }
 
     /**
-     * Генерация PDF отчета со всей аналитикой
+     * Генерирует полный PDF отчёт со всей аналитикой.
+     *
+     * Создаёт многостраничный документ с разделами: продажи, топ товары,
+     * категории и способы оплаты. Включает графики и таблицы.
+     *
+     * @param dailySales Дневная статистика продаж
+     * @param monthlyRevenue Помесячная выручка
+     * @param topProducts Список топовых продуктов
+     * @param categorySales Продажи по категориям
+     * @param paymentMethodStats Статистика по способам оплаты
+     * @param selectedDays Период для анализа (количество дней)
+     * @param topProductsLimit Максимальное количество топ товаров
+     * @return Файл PDF отчёта или null в случае ошибки
      */
     fun generateAnalyticsReport(
         dailySales: List<DailySalesReportDTO>,

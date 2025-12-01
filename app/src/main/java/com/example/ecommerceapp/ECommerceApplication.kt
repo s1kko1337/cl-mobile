@@ -6,17 +6,33 @@ import android.util.Log
 import com.yandex.mapkit.MapKitFactory
 import dagger.hilt.android.HiltAndroidApp
 
+/**
+ * Главный класс Application для приложения электронной коммерции.
+ *
+ * Инициализирует Hilt для dependency injection и настраивает
+ * Yandex MapKit для работы с картами при выборе адреса доставки.
+ */
 @HiltAndroidApp
 class ECommerceApplication : Application() {
 
+    /**
+     * Вызывается при создании приложения.
+     *
+     * Инициализирует Yandex Maps SDK для использования в приложении.
+     */
     override fun onCreate() {
         super.onCreate()
         initializeYandexMaps()
     }
 
+    /**
+     * Инициализирует Yandex MapKit SDK.
+     *
+     * Извлекает API ключ из AndroidManifest.xml и настраивает MapKit.
+     * В случае ошибки логирует сообщение, но не прерывает работу приложения.
+     */
     private fun initializeYandexMaps() {
         try {
-            // Получаем API ключ из AndroidManifest.xml
             val appInfo = packageManager.getApplicationInfo(
                 packageName,
                 PackageManager.GET_META_DATA
@@ -30,7 +46,6 @@ class ECommerceApplication : Application() {
 
             Log.d("ECommerceApp", "Initializing Yandex Maps with API key: ${apiKey.take(10)}...")
 
-            // Устанавливаем API ключ перед инициализацией
             MapKitFactory.setApiKey(apiKey)
             MapKitFactory.initialize(this)
 

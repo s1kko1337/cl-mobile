@@ -6,10 +6,23 @@ import com.example.ecommerceapp.util.Resource
 import okhttp3.ResponseBody
 import javax.inject.Inject
 
+/**
+ * Репозиторий для работы с административными отчётами и аналитикой.
+ *
+ * Предоставляет методы для получения различной аналитики (продажи, выручка, топ товары),
+ * данных для Dashboard и экспорта отчётов в CSV/Excel форматах.
+ *
+ * @property api Сервис API для выполнения сетевых запросов
+ */
 class AdminReportsRepository @Inject constructor(
     private val api: ApiService
 ) {
-    // Аналитика - Дневная статистика продаж
+    /**
+     * Получает дневную статистику продаж за указанный период.
+     *
+     * @param days Количество дней для выборки (по умолчанию 30)
+     * @return Resource со списком DailySalesReportDTO или сообщением об ошибке
+     */
     suspend fun getDailySales(days: Int = 30): Resource<List<DailySalesReportDTO>> {
         return try {
             val response = api.getDailySales(days)
@@ -23,7 +36,13 @@ class AdminReportsRepository @Inject constructor(
         }
     }
 
-    // Аналитика - Отчет за период
+    /**
+     * Получает отчёт о продажах за определённый период.
+     *
+     * @param from Начальная дата периода (опционально)
+     * @param to Конечная дата периода (опционально)
+     * @return Resource с PeriodSalesReportDTO или сообщением об ошибке
+     */
     suspend fun getPeriodSales(
         from: String?,
         to: String?
@@ -40,7 +59,12 @@ class AdminReportsRepository @Inject constructor(
         }
     }
 
-    // Аналитика - Помесячная выручка
+    /**
+     * Получает помесячную статистику выручки.
+     *
+     * @param months Количество месяцев для выборки (по умолчанию 12)
+     * @return Resource со списком MonthlyRevenueDTO или сообщением об ошибке
+     */
     suspend fun getMonthlyRevenue(months: Int = 12): Resource<List<MonthlyRevenueDTO>> {
         return try {
             val response = api.getMonthlyRevenue(months)
@@ -54,7 +78,14 @@ class AdminReportsRepository @Inject constructor(
         }
     }
 
-    // Аналитика - Топ товары
+    /**
+     * Получает список топовых продуктов по продажам.
+     *
+     * @param limit Максимальное количество продуктов в списке (по умолчанию 10)
+     * @param from Начальная дата периода (опционально)
+     * @param to Конечная дата периода (опционально)
+     * @return Resource со списком TopProductDTO или сообщением об ошибке
+     */
     suspend fun getTopProducts(
         limit: Int = 10,
         from: String?,
@@ -72,7 +103,13 @@ class AdminReportsRepository @Inject constructor(
         }
     }
 
-    // Аналитика - Продажи по категориям
+    /**
+     * Получает статистику продаж по категориям.
+     *
+     * @param from Начальная дата периода (опционально)
+     * @param to Конечная дата периода (опционально)
+     * @return Resource со списком CategorySalesDTO или сообщением об ошибке
+     */
     suspend fun getSalesByCategory(
         from: String?,
         to: String?
@@ -89,7 +126,13 @@ class AdminReportsRepository @Inject constructor(
         }
     }
 
-    // Аналитика - Статистика по способам оплаты
+    /**
+     * Получает статистику по способам оплаты.
+     *
+     * @param from Начальная дата периода (опционально)
+     * @param to Конечная дата периода (опционально)
+     * @return Resource со списком PaymentMethodStatsDTO или сообщением об ошибке
+     */
     suspend fun getPaymentMethodStats(
         from: String?,
         to: String?
@@ -106,7 +149,11 @@ class AdminReportsRepository @Inject constructor(
         }
     }
 
-    // Dashboard - Сводка
+    /**
+     * Получает сводную статистику для админ-панели.
+     *
+     * @return Resource с DashboardSummaryDTO или сообщением об ошибке
+     */
     suspend fun getDashboardSummary(): Resource<DashboardSummaryDTO> {
         return try {
             val response = api.getDashboardSummary()
@@ -120,7 +167,11 @@ class AdminReportsRepository @Inject constructor(
         }
     }
 
-    // Dashboard - Алерты
+    /**
+     * Получает алерты для админ-панели.
+     *
+     * @return Resource со списком DashboardAlertDTO или сообщением об ошибке
+     */
     suspend fun getDashboardAlerts(): Resource<List<DashboardAlertDTO>> {
         return try {
             val response = api.getDashboardAlerts()
@@ -134,7 +185,11 @@ class AdminReportsRepository @Inject constructor(
         }
     }
 
-    // Экспорт - Товары CSV
+    /**
+     * Экспортирует список товаров в формате CSV.
+     *
+     * @return Resource с ResponseBody (файл CSV) или сообщением об ошибке
+     */
     suspend fun exportProductsCsv(): Resource<ResponseBody> {
         return try {
             val response = api.exportProductsCsv()
@@ -148,7 +203,11 @@ class AdminReportsRepository @Inject constructor(
         }
     }
 
-    // Экспорт - Товары Excel
+    /**
+     * Экспортирует список товаров в формате Excel.
+     *
+     * @return Resource с ResponseBody (файл Excel) или сообщением об ошибке
+     */
     suspend fun exportProductsExcel(): Resource<ResponseBody> {
         return try {
             val response = api.exportProductsExcel()
@@ -162,7 +221,13 @@ class AdminReportsRepository @Inject constructor(
         }
     }
 
-    // Экспорт - Заказы CSV
+    /**
+     * Экспортирует заказы в формате CSV за указанный период.
+     *
+     * @param from Начальная дата периода (опционально)
+     * @param to Конечная дата периода (опционально)
+     * @return Resource с ResponseBody (файл CSV) или сообщением об ошибке
+     */
     suspend fun exportOrdersCsv(from: String?, to: String?): Resource<ResponseBody> {
         return try {
             val response = api.exportOrdersCsv(from, to)
@@ -176,7 +241,13 @@ class AdminReportsRepository @Inject constructor(
         }
     }
 
-    // Экспорт - Заказы Excel
+    /**
+     * Экспортирует заказы в формате Excel за указанный период.
+     *
+     * @param from Начальная дата периода (опционально)
+     * @param to Конечная дата периода (опционально)
+     * @return Resource с ResponseBody (файл Excel) или сообщением об ошибке
+     */
     suspend fun exportOrdersExcel(from: String?, to: String?): Resource<ResponseBody> {
         return try {
             val response = api.exportOrdersExcel(from, to)
@@ -190,7 +261,13 @@ class AdminReportsRepository @Inject constructor(
         }
     }
 
-    // Экспорт - Отчет по продажам CSV
+    /**
+     * Экспортирует отчёт по продажам в формате CSV за указанный период.
+     *
+     * @param from Начальная дата периода (опционально)
+     * @param to Конечная дата периода (опционально)
+     * @return Resource с ResponseBody (файл CSV) или сообщением об ошибке
+     */
     suspend fun exportSalesReportCsv(from: String?, to: String?): Resource<ResponseBody> {
         return try {
             val response = api.exportSalesReportCsv(from, to)
@@ -204,7 +281,13 @@ class AdminReportsRepository @Inject constructor(
         }
     }
 
-    // Экспорт - Отчет по продажам Excel
+    /**
+     * Экспортирует отчёт по продажам в формате Excel за указанный период.
+     *
+     * @param from Начальная дата периода (опционально)
+     * @param to Конечная дата периода (опционально)
+     * @return Resource с ResponseBody (файл Excel) или сообщением об ошибке
+     */
     suspend fun exportSalesReportExcel(from: String?, to: String?): Resource<ResponseBody> {
         return try {
             val response = api.exportSalesReportExcel(from, to)
@@ -218,7 +301,11 @@ class AdminReportsRepository @Inject constructor(
         }
     }
 
-    // Экспорт - Инвентаризация CSV
+    /**
+     * Экспортирует инвентаризацию (остатки товаров) в формате CSV.
+     *
+     * @return Resource с ResponseBody (файл CSV) или сообщением об ошибке
+     */
     suspend fun exportInventoryCsv(): Resource<ResponseBody> {
         return try {
             val response = api.exportInventoryCsv()
@@ -232,7 +319,11 @@ class AdminReportsRepository @Inject constructor(
         }
     }
 
-    // Экспорт - Инвентаризация Excel
+    /**
+     * Экспортирует инвентаризацию (остатки товаров) в формате Excel.
+     *
+     * @return Resource с ResponseBody (файл Excel) или сообщением об ошибке
+     */
     suspend fun exportInventoryExcel(): Resource<ResponseBody> {
         return try {
             val response = api.exportInventoryExcel()

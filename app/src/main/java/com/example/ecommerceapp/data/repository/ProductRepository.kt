@@ -10,9 +10,22 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
 import javax.inject.Inject
 
+/**
+ * Репозиторий для работы с продуктами.
+ *
+ * Предоставляет методы для получения, создания, обновления и удаления продуктов,
+ * а также для работы с изображениями продуктов.
+ *
+ * @property api Сервис API для выполнения сетевых запросов
+ */
 class ProductRepository @Inject constructor(
     private val api: ApiService
 ) {
+    /**
+     * Получает список всех продуктов.
+     *
+     * @return Resource с списком ProductDTO или сообщением об ошибке
+     */
     suspend fun getProducts(): Resource<List<ProductDTO>> {
         return try {
             val response = api.getProducts()
@@ -26,6 +39,14 @@ class ProductRepository @Inject constructor(
         }
     }
 
+    /**
+     * Загружает изображение для продукта.
+     *
+     * @param productId ID продукта
+     * @param imageFile Файл изображения для загрузки
+     * @param altText Альтернативный текст для изображения (опционально)
+     * @return Resource с ProductImageDTO или сообщением об ошибке
+     */
     suspend fun uploadProductImage(
         productId: Int,
         imageFile: File,
@@ -47,6 +68,12 @@ class ProductRepository @Inject constructor(
         }
     }
 
+    /**
+     * Получает информацию о всех изображениях продукта.
+     *
+     * @param productId ID продукта
+     * @return Resource со списком ProductImageDTO или сообщением об ошибке
+     */
     suspend fun getProductImages(productId: Int): Resource<List<ProductImageDTO>> {
         return try {
             val response = api.getProductImagesInfo(productId)
@@ -60,6 +87,13 @@ class ProductRepository @Inject constructor(
         }
     }
 
+    /**
+     * Удаляет изображение продукта.
+     *
+     * @param productId ID продукта
+     * @param imageId ID изображения для удаления
+     * @return Resource с Unit или сообщением об ошибке
+     */
     suspend fun deleteProductImage(productId: Int, imageId: Int): Resource<Unit> {
         return try {
             val response = api.deleteProductImage(productId, imageId)
@@ -73,6 +107,12 @@ class ProductRepository @Inject constructor(
         }
     }
 
+    /**
+     * Получает детальную информацию о продукте по ID.
+     *
+     * @param id ID продукта
+     * @return Resource с ProductDTO или сообщением об ошибке
+     */
     suspend fun getProduct(id: Int): Resource<ProductDTO> {
         return try {
             val response = api.getProduct(id)
@@ -86,6 +126,12 @@ class ProductRepository @Inject constructor(
         }
     }
 
+    /**
+     * Создает новый продукт.
+     *
+     * @param product Данные для создания продукта
+     * @return Resource с созданным ProductDTO или сообщением об ошибке
+     */
     suspend fun createProduct(product: ProductCreateDTO): Resource<ProductDTO> {
         return try {
             val response = api.createProduct(product)
@@ -99,6 +145,13 @@ class ProductRepository @Inject constructor(
         }
     }
 
+    /**
+     * Обновляет существующий продукт.
+     *
+     * @param id ID продукта для обновления
+     * @param product Данные для обновления продукта
+     * @return Resource с Unit или сообщением об ошибке
+     */
     suspend fun updateProduct(id: Int, product: ProductUpdateDTO): Resource<Unit> {
         return try {
             val response = api.updateProduct(id, product)
@@ -112,6 +165,12 @@ class ProductRepository @Inject constructor(
         }
     }
 
+    /**
+     * Удаляет продукт.
+     *
+     * @param id ID продукта для удаления
+     * @return Resource с Unit или сообщением об ошибке
+     */
     suspend fun deleteProduct(id: Int): Resource<Unit> {
         return try {
             val response = api.deleteProduct(id)
