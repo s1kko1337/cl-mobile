@@ -13,6 +13,17 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 
+/**
+ * Экран регистрации нового пользователя.
+ *
+ * Предоставляет форму для ввода имени пользователя, email, пароля
+ * с подтверждением и выбором роли (покупатель/администратор).
+ * Выполняет валидацию совпадения паролей перед отправкой.
+ *
+ * @param onNavigateBack Callback для возврата на предыдущий экран
+ * @param onRegisterSuccess Callback, вызываемый при успешной регистрации
+ * @param viewModel ViewModel для управления процессом регистрации
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterScreen(

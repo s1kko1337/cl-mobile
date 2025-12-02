@@ -17,15 +17,35 @@ import kotlinx.coroutines.launch
 import java.io.File
 import javax.inject.Inject
 
+/**
+ * Состояние экрана детальной информации о заказе.
+ *
+ * @property order Информация о заказе
+ * @property isLoading Индикатор загрузки данных
+ * @property error Сообщение об ошибке (null если ошибок нет)
+ * @property orderDeleted Флаг успешного удаления заказа
+ * @property productReviews Карта отзывов пользователя на товары (productId -> отзыв или null)
+ * @property reviewSubmitted Флаг успешной отправки/обновления/удаления отзыва
+ */
 data class OrderDetailState(
     val order: OrderDTO? = null,
     val isLoading: Boolean = false,
     val error: String? = null,
     val orderDeleted: Boolean = false,
-    val productReviews: Map<Int, ProductReviewDTO?> = emptyMap(), // productId -> review or null
+    val productReviews: Map<Int, ProductReviewDTO?> = emptyMap(),
     val reviewSubmitted: Boolean = false
 )
 
+/**
+ * ViewModel для экрана детальной информации о заказе.
+ *
+ * Управляет загрузкой данных о конкретном заказе, работой с отзывами на товары
+ * из заказа (создание, обновление, удаление) и удалением заказа.
+ *
+ * @property orderRepository Репозиторий для работы с заказами
+ * @property reviewRepository Репозиторий для работы с отзывами
+ * @property userPreferences Менеджер пользовательских настроек для получения ID и имени пользователя
+ */
 @HiltViewModel
 class OrderDetailViewModel @Inject constructor(
     private val orderRepository: OrderRepository,
@@ -34,6 +54,10 @@ class OrderDetailViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(OrderDetailState())
+
+    /**
+     * Реактивный поток состояния экрана детальной информации о заказе.
+     */
     val state = _state.asStateFlow()
 
     private var currentUserId: Int = 0
@@ -52,6 +76,14 @@ class OrderDetailViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Загружает детальную информацию о заказе по его ID.
+     *
+     * Если заказ имеет статус "Completed", дополнительно загружает
+     * отзывы пользователя на товары из этого заказа.
+     *
+     * @param orderId ID заказа для загрузки
+     */
     fun loadOrder(orderId: Int) {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null) }
@@ -66,7 +98,6 @@ class OrderDetailViewModel @Inject constructor(
                         )
                     }
 
-                    // Only load reviews if order is completed
                     if (order?.status == "Completed") {
                         loadProductReviews(order.orderItems.map { item -> item.productId })
                     }
@@ -84,6 +115,13 @@ class OrderDetailViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Загружает отзывы текущего пользователя на указанные товары.
+     *
+     * Для каждого товара ищет отзыв от текущего пользователя и сохраняет результат в состояние.
+     *
+     * @param productIds Список ID товаров для загрузки отзывов
+     */
     private fun loadProductReviews(productIds: List<Int>) {
         viewModelScope.launch {
             val reviewsMap = mutableMapOf<Int, ProductReviewDTO?>()
@@ -91,7 +129,6 @@ class OrderDetailViewModel @Inject constructor(
             productIds.forEach { productId ->
                 when (val result = reviewRepository.getProductReviews(productId)) {
                     is Resource.Success -> {
-                        // Find review from current user
                         reviewsMap[productId] = result.data?.find { review ->
                             review.authorId == currentUserId
                         }
@@ -107,6 +144,13 @@ class OrderDetailViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Создаёт новый отзыв на товар.
+     *
+     * @param productId ID товара
+     * @param rating Оценка товара (обычно от 1 до 5)
+     * @param comment Текст комментария
+     */
     fun submitReview(productId: Int, rating: Int, comment: String) {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
@@ -140,6 +184,19 @@ class OrderDetailViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Обновляет существующий отзыв на товар.
+     *
+     * Позволяет обновить текст и оценку, загрузить новое изображение
+     * или удалить существующее.
+     *
+     * @param productId ID товара
+     * @param reviewId ID отзыва
+     * @param rating Новая оценка товара
+     * @param comment Новый текст комментария
+     * @param imageFile Файл изображения для загрузки (необязательно)
+     * @param deleteImage Удалить ли существующее изображение
+     */
     fun updateReview(
         productId: Int,
         reviewId: Int,
@@ -161,7 +218,6 @@ class OrderDetailViewModel @Inject constructor(
                 is Resource.Success -> {
                     var imageError: String? = null
 
-                    // Handle image deletion first if requested
                     if (deleteImage) {
                         when (reviewRepository.deleteReviewImage(productId, reviewId)) {
                             is Resource.Error -> {
@@ -171,7 +227,6 @@ class OrderDetailViewModel @Inject constructor(
                         }
                     }
 
-                    // Handle image upload if provided
                     if (imageFile != null) {
                         when (reviewRepository.uploadReviewImage(productId, reviewId, imageFile)) {
                             is Resource.Error -> {
@@ -202,6 +257,12 @@ class OrderDetailViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Удаляет отзыв на товар.
+     *
+     * @param productId ID товара
+     * @param reviewId ID отзыва для удаления
+     */
     fun deleteReview(productId: Int, reviewId: Int) {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
@@ -228,6 +289,11 @@ class OrderDetailViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Удаляет заказ по его ID.
+     *
+     * @param orderId ID заказа для удаления
+     */
     fun deleteOrder(orderId: Int) {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null) }
@@ -254,6 +320,9 @@ class OrderDetailViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Сбрасывает флаг успешной отправки отзыва в состоянии.
+     */
     fun resetReviewSubmitted() {
         _state.update { it.copy(reviewSubmitted = false) }
     }

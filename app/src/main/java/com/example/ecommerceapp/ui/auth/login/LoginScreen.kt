@@ -15,6 +15,17 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 
+/**
+ * Экран входа в систему.
+ *
+ * Предоставляет форму для ввода email и пароля,
+ * с возможностью переключения видимости пароля.
+ * После успешной авторизации вызывает callback с ролью пользователя.
+ *
+ * @param onNavigateToRegister Callback для перехода на экран регистрации
+ * @param onLoginSuccess Callback, вызываемый при успешном входе с ролью пользователя ("customer" или "admin")
+ * @param viewModel ViewModel для управления процессом входа
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(

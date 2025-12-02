@@ -11,32 +11,48 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
+/**
+ * Цветовая схема для тёмной темы приложения.
+ *
+ * Использует светлые оттенки цветов (Purple80, PurpleGrey80, Pink80)
+ * для обеспечения хорошей читаемости на тёмном фоне.
+ */
 private val DarkColorScheme = darkColorScheme(
     primary = Purple80,
     secondary = PurpleGrey80,
     tertiary = Pink80
 )
 
+/**
+ * Цветовая схема для светлой темы приложения.
+ *
+ * Использует тёмные оттенки цветов (Purple40, PurpleGrey40, Pink40)
+ * для обеспечения хорошей читаемости на светлом фоне.
+ */
 private val LightColorScheme = lightColorScheme(
     primary = Purple40,
     secondary = PurpleGrey40,
     tertiary = Pink40
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
 )
 
+/**
+ * Главная composable функция темы приложения E-Commerce.
+ *
+ * Применяет Material Design 3 тему с поддержкой тёмного режима и динамических цветов (Android 12+).
+ * Автоматически выбирает цветовую схему в зависимости от системных настроек и версии Android.
+ *
+ * Приоритеты выбора цветовой схемы:
+ * 1. Динамические цвета системы (Android 12+), если включен dynamicColor
+ * 2. Тёмная цветовая схема, если включена тёмная тема
+ * 3. Светлая цветовая схема по умолчанию
+ *
+ * @param darkTheme Использовать ли тёмную тему (по умолчанию берётся из системных настроек)
+ * @param dynamicColor Использовать ли динамические цвета Android 12+ (по умолчанию true)
+ * @param content Composable содержимое приложения, к которому применяется тема
+ */
 @Composable
 fun ECommerceAppTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {

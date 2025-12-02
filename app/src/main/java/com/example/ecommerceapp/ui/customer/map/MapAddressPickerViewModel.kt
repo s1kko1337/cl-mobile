@@ -25,6 +25,15 @@ import kotlinx.coroutines.withContext
 import java.util.Locale
 import javax.inject.Inject
 
+/**
+ * Состояние экрана выбора адреса на карте.
+ *
+ * @property currentLocation Текущее местоположение пользователя
+ * @property selectedPoint Выбранная точка на карте
+ * @property selectedAddress Текстовый адрес выбранной точки
+ * @property isLoading Индикатор загрузки данных о местоположении
+ * @property error Сообщение об ошибке (null если ошибок нет)
+ */
 data class MapAddressPickerState(
     val currentLocation: Point? = null,
     val selectedPoint: Point? = null,
@@ -33,18 +42,39 @@ data class MapAddressPickerState(
     val error: String? = null
 )
 
+/**
+ * ViewModel для экрана выбора адреса на карте.
+ *
+ * Управляет получением текущего местоположения пользователя,
+ * выбором точки на карте и преобразованием координат в читаемый адрес
+ * с использованием Geocoder и Google Location Services.
+ *
+ * @property context Контекст приложения для доступа к сервисам геолокации
+ */
 @HiltViewModel
 class MapAddressPickerViewModel @Inject constructor(
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(MapAddressPickerState())
+
+    /**
+     * Реактивный поток состояния экрана выбора адреса.
+     */
     val state = _state.asStateFlow()
 
     private val geocoder = Geocoder(context, Locale("ru"))
     private val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
     private var locationCallback: LocationCallback? = null
 
+    /**
+     * Получает текущее местоположение пользователя.
+     *
+     * Сначала пытается получить последнее известное местоположение,
+     * если оно недоступно - запрашивает активное обновление.
+     * После получения координат автоматически вызывает onMapClick
+     * для определения адреса.
+     */
     @SuppressLint("MissingPermission")
     fun getCurrentLocation() {
         viewModelScope.launch {
@@ -53,7 +83,6 @@ class MapAddressPickerViewModel @Inject constructor(
             try {
                 Log.d("MapViewModel", "Requesting current location...")
 
-                // Сначала пробуем получить последнее известное местоположение
                 fusedLocationClient.lastLocation
                     .addOnSuccessListener { location: Location? ->
                         if (location != null) {
@@ -65,17 +94,14 @@ class MapAddressPickerViewModel @Inject constructor(
                                     isLoading = false
                                 )
                             }
-                            // Автоматически выбираем текущее местоположение
                             onMapClick(point)
                         } else {
-                            // Если lastLocation null, запрашиваем активное обновление
                             Log.d("MapViewModel", "lastLocation is null, requesting current location...")
                             requestCurrentLocation()
                         }
                     }
                     .addOnFailureListener { exception ->
                         Log.e("MapViewModel", "Failed to get lastLocation", exception)
-                        // Если не удалось получить lastLocation, пробуем активный запрос
                         requestCurrentLocation()
                     }
             } catch (e: SecurityException) {
@@ -98,6 +124,13 @@ class MapAddressPickerViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Запрашивает активное обновление текущего местоположения.
+     *
+     * Создаёт запрос на одно обновление с высокой точностью.
+     * После получения местоположения автоматически вызывает onMapClick
+     * и удаляет callback обновлений.
+     */
     @SuppressLint("MissingPermission")
     private fun requestCurrentLocation() {
         try {
@@ -105,9 +138,9 @@ class MapAddressPickerViewModel @Inject constructor(
 
             val locationRequest = LocationRequest.Builder(
                 Priority.PRIORITY_HIGH_ACCURACY,
-                10000 // 10 секунд
+                10000
             ).apply {
-                setMaxUpdates(1) // Получить только одно обновление
+                setMaxUpdates(1)
                 setWaitForAccurateLocation(false)
             }.build()
 
@@ -125,10 +158,8 @@ class MapAddressPickerViewModel @Inject constructor(
                                 isLoading = false
                             )
                         }
-                        // Автоматически выбираем текущее местоположение
                         onMapClick(point)
 
-                        // Удаляем callback после получения местоположения
                         locationCallback?.let { fusedLocationClient.removeLocationUpdates(it) }
                     } ?: run {
                         Log.w("MapViewModel", "Location result is empty")
@@ -166,11 +197,24 @@ class MapAddressPickerViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Освобождает ресурсы при уничтожении ViewModel.
+     *
+     * Удаляет активные обновления местоположения.
+     */
     override fun onCleared() {
         super.onCleared()
         locationCallback?.let { fusedLocationClient.removeLocationUpdates(it) }
     }
 
+    /**
+     * Обрабатывает клик пользователя на карте.
+     *
+     * Определяет текстовый адрес для выбранной точки
+     * и обновляет состояние с новыми координатами и адресом.
+     *
+     * @param point Точка на карте, выбранная пользователем
+     */
     fun onMapClick(point: Point) {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null) }
@@ -194,6 +238,17 @@ class MapAddressPickerViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Преобразует географические координаты в текстовый адрес.
+     *
+     * Использует Geocoder для получения адреса по координатам.
+     * Формирует читаемое представление адреса из компонентов
+     * (улица, дом, город, регион, страна).
+     * При невозможности определить адрес возвращает координаты в текстовом виде.
+     *
+     * @param point Точка с координатами для преобразования
+     * @return Текстовое представление адреса или координаты
+     */
     private suspend fun getAddressFromCoordinates(point: Point): String {
         return withContext(Dispatchers.IO) {
             try {
@@ -201,7 +256,6 @@ class MapAddressPickerViewModel @Inject constructor(
                 val addresses = geocoder.getFromLocation(point.latitude, point.longitude, 1)
                 if (!addresses.isNullOrEmpty()) {
                     val address = addresses[0]
-                    // Формируем читаемый адрес
                     buildString {
                         address.thoroughfare?.let { append(it) }
                         address.subThoroughfare?.let {
@@ -231,6 +285,9 @@ class MapAddressPickerViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Очищает сообщение об ошибке в состоянии.
+     */
     fun clearError() {
         _state.update { it.copy(error = null) }
     }

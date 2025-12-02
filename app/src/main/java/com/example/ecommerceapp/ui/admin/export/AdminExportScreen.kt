@@ -14,6 +14,16 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 
+/**
+ * Экран экспорта данных администратором.
+ *
+ * Позволяет экспортировать товары, заказы и складские запасы
+ * в форматах CSV и Excel. Экспортированные файлы сохраняются
+ * во внешнее хранилище приложения и могут быть открыты или расшарены.
+ *
+ * @param onNavigateBack Callback для возврата на предыдущий экран
+ * @param viewModel ViewModel для управления экспортом данных
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminExportScreen(
@@ -23,7 +33,6 @@ fun AdminExportScreen(
     val state by viewModel.state.collectAsState()
     val context = LocalContext.current
 
-    // Показываем Snackbar при успехе или ошибке
     LaunchedEffect(state.successMessage, state.error) {
         if (state.successMessage != null || state.error != null) {
             kotlinx.coroutines.delay(3000)
@@ -50,7 +59,6 @@ fun AdminExportScreen(
                         if (state.exportedFile != null) {
                             TextButton(
                                 onClick = {
-                                    // Открываем файл
                                     val file = state.exportedFile!!
                                     val uri = FileProvider.getUriForFile(
                                         context,
@@ -218,6 +226,19 @@ fun AdminExportScreen(
     }
 }
 
+/**
+ * Карточка экспорта данных.
+ *
+ * Отображает тип экспорта с иконкой, заголовком, описанием
+ * и кнопкой для запуска экспорта. Показывает индикатор загрузки
+ * во время процесса экспорта.
+ *
+ * @param title Заголовок типа экспорта
+ * @param description Описание типа экспорта
+ * @param icon Иконка типа экспорта
+ * @param isLoading Флаг процесса загрузки
+ * @param onClick Callback для запуска экспорта
+ */
 @Composable
 fun ExportCard(
     title: String,

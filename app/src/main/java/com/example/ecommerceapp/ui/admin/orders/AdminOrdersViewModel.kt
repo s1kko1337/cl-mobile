@@ -12,6 +12,21 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * Состояние экрана управления заказами администратором.
+ *
+ * @property orders Полный список заказов
+ * @property filteredOrders Отфильтрованный и отсортированный список заказов
+ * @property isLoading Индикатор загрузки списка заказов
+ * @property error Сообщение об ошибке
+ * @property selectedFilter Текущий фильтр по статусу заказа
+ * @property currentSort Текущий тип сортировки
+ * @property searchQuery Текущий поисковый запрос
+ * @property totalOrders Общее количество заказов
+ * @property pendingOrders Количество заказов со статусом "Pending"
+ * @property processingOrders Количество заказов со статусом "Processing"
+ * @property completedOrders Количество заказов со статусом "Completed"
+ */
 data class AdminOrdersState(
     val orders: List<OrderDTO> = emptyList(),
     val filteredOrders: List<OrderDTO> = emptyList(),
@@ -26,18 +41,42 @@ data class AdminOrdersState(
     val completedOrders: Int = 0
 )
 
+/**
+ * Типы сортировки заказов.
+ *
+ * @property DATE_DESC По дате создания (новые сначала)
+ * @property DATE_ASC По дате создания (старые сначала)
+ * @property AMOUNT_DESC По сумме (большие сначала)
+ * @property AMOUNT_ASC По сумме (меньшие сначала)
+ */
 enum class OrderSortType {
     DATE_DESC, DATE_ASC, AMOUNT_DESC, AMOUNT_ASC
 }
 
+/**
+ * ViewModel для экрана управления заказами администратором.
+ *
+ * Управляет загрузкой, фильтрацией, сортировкой и поиском заказов.
+ * Подсчитывает статистику по статусам заказов.
+ *
+ * @property orderRepository Репозиторий для работы с заказами
+ */
 @HiltViewModel
 class AdminOrdersViewModel @Inject constructor(
     private val orderRepository: OrderRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AdminOrdersState())
+
+    /** Реактивный поток состояния управления заказами */
     val state = _state.asStateFlow()
 
+    /**
+     * Загружает список всех заказов.
+     *
+     * Получает список заказов, применяет текущие фильтры и сортировку,
+     * подсчитывает статистику по статусам.
+     */
     fun loadOrders() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null) }
@@ -66,11 +105,16 @@ class AdminOrdersViewModel @Inject constructor(
                     }
                 }
 
-                is Resource.Loading<*> -> TODO()
+                is Resource.Loading<*> -> {}
             }
         }
     }
 
+    /**
+     * Фильтрует заказы по статусу.
+     *
+     * @param status Статус для фильтрации ("Pending", "Processing", "Completed") или null для всех заказов
+     */
     fun filterByStatus(status: String?) {
         _state.update {
             it.copy(
@@ -80,6 +124,11 @@ class AdminOrdersViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Изменяет тип сортировки заказов.
+     *
+     * @param sortType Новый тип сортировки
+     */
     fun sortOrders(sortType: OrderSortType) {
         _state.update {
             it.copy(
@@ -89,6 +138,13 @@ class AdminOrdersViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Выполняет поиск заказов по запросу.
+     *
+     * Поиск осуществляется по ID заказа, имени и телефону клиента.
+     *
+     * @param query Поисковый запрос
+     */
     fun searchOrders(query: String) {
         _state.update {
             it.copy(
@@ -98,6 +154,18 @@ class AdminOrdersViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Применяет фильтрацию, поиск и сортировку к списку заказов.
+     *
+     * Последовательно применяет фильтр по статусу, поисковый запрос
+     * (по ID, имени клиента, телефону) и сортировку.
+     *
+     * @param orders Исходный список заказов
+     * @param statusFilter Фильтр по статусу или null
+     * @param sortType Тип сортировки
+     * @param searchQuery Поисковый запрос
+     * @return Отфильтрованный и отсортированный список заказов
+     */
     private fun applyFiltersAndSort(
         orders: List<OrderDTO>,
         statusFilter: String?,
@@ -106,12 +174,10 @@ class AdminOrdersViewModel @Inject constructor(
     ): List<OrderDTO> {
         var result = orders
 
-        // Применяем фильтр по статусу
         if (statusFilter != null) {
             result = result.filter { it.status == statusFilter }
         }
 
-        // Применяем поиск
         if (searchQuery.isNotBlank()) {
             result = result.filter { order ->
                 order.id.toString().contains(searchQuery) ||
@@ -120,7 +186,6 @@ class AdminOrdersViewModel @Inject constructor(
             }
         }
 
-        // Применяем сортировку
         result = when (sortType) {
             OrderSortType.DATE_DESC -> result.sortedByDescending { it.createdAt }
             OrderSortType.DATE_ASC -> result.sortedBy { it.createdAt }

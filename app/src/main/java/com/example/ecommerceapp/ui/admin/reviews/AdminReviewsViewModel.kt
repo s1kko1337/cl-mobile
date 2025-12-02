@@ -12,12 +12,28 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * Отзыв с информацией о товаре.
+ *
+ * @property review Отзыв на товар
+ * @property productName Название товара
+ * @property productId ID товара
+ */
 data class ReviewWithProduct(
     val review: ProductReviewDTO,
     val productName: String,
     val productId: Int
 )
 
+/**
+ * Состояние экрана управления отзывами для администратора.
+ *
+ * @property reviews Список отзывов с информацией о товарах
+ * @property isLoading Индикатор загрузки данных
+ * @property error Сообщение об ошибке (null если ошибок нет)
+ * @property selectedProductId ID выбранного товара для фильтрации (null - все товары)
+ * @property products Список всех товаров
+ */
 data class AdminReviewsState(
     val reviews: List<ReviewWithProduct> = emptyList(),
     val isLoading: Boolean = false,
@@ -26,6 +42,14 @@ data class AdminReviewsState(
     val products: List<ProductDTO> = emptyList()
 )
 
+/**
+ * ViewModel для экрана управления отзывами администратором.
+ *
+ * Управляет просмотром всех отзывов в системе, фильтрацией по товарам и удалением отзывов.
+ *
+ * @property productRepository Репозиторий для работы с товарами
+ * @property reviewRepository Репозиторий для работы с отзывами
+ */
 @HiltViewModel
 class AdminReviewsViewModel @Inject constructor(
     private val productRepository: ProductRepository,
@@ -33,19 +57,27 @@ class AdminReviewsViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AdminReviewsState())
+
+    /**
+     * Реактивный поток состояния экрана управления отзывами.
+     */
     val state = _state.asStateFlow()
 
+    /**
+     * Загружает все товары и все отзывы на них.
+     *
+     * Сначала загружает список товаров, затем для каждого товара загружает его отзывы.
+     * Результат сортируется по дате создания отзыва (новые первыми).
+     */
     fun loadData() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null) }
 
-            // Load products
             when (val productsResult = productRepository.getProducts()) {
                 is Resource.Success -> {
                     val products = productsResult.data ?: emptyList()
                     _state.update { it.copy(products = products) }
 
-                    // Load all reviews from all products
                     val allReviews = mutableListOf<ReviewWithProduct>()
                     products.forEach { product ->
                         when (val reviewsResult = reviewRepository.getProductReviews(product.id)) {
@@ -60,9 +92,8 @@ class AdminReviewsViewModel @Inject constructor(
                                     )
                                 }
                             }
-                            is Resource.Error -> {
-                                // Игнорируем ошибки для отдельных продуктов
-                            }
+                            is Resource.Error -> {}
+
 
                             is Resource.Loading<*> -> TODO()
                         }
@@ -90,6 +121,14 @@ class AdminReviewsViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Фильтрует отзывы по товару.
+     *
+     * Если productId = null, показывает все отзывы.
+     * Иначе загружает только отзывы на указанный товар.
+     *
+     * @param productId ID товара для фильтрации (null для всех товаров)
+     */
     fun filterByProduct(productId: Int?) {
         viewModelScope.launch {
             _state.update { it.copy(selectedProductId = productId, isLoading = true) }
@@ -131,6 +170,15 @@ class AdminReviewsViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Удаляет отзыв.
+     *
+     * После успешного удаления обновляет список отзывов
+     * с учётом текущего фильтра.
+     *
+     * @param productId ID товара
+     * @param reviewId ID отзыва для удаления
+     */
     fun deleteReview(productId: Int, reviewId: Int) {
         viewModelScope.launch {
             when (reviewRepository.deleteReview(productId, reviewId)) {
@@ -150,6 +198,9 @@ class AdminReviewsViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Обновляет список отзывов с учётом текущего фильтра.
+     */
     fun refresh() {
         if (_state.value.selectedProductId != null) {
             filterByProduct(_state.value.selectedProductId)

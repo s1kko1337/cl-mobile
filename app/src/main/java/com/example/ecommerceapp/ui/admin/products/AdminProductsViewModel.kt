@@ -12,6 +12,14 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * Состояние экрана управления товарами для администратора.
+ *
+ * @property products Список всех товаров в системе
+ * @property isLoading Индикатор загрузки списка товаров
+ * @property error Сообщение об ошибке (null если ошибок нет)
+ * @property showAddDialog Флаг отображения диалога создания нового товара
+ */
 data class AdminProductsState(
     val products: List<ProductDTO> = emptyList(),
     val isLoading: Boolean = false,
@@ -19,6 +27,14 @@ data class AdminProductsState(
     val showAddDialog: Boolean = false
 )
 
+/**
+ * ViewModel для экрана управления товарами администратором.
+ *
+ * Управляет списком товаров, их созданием и удалением.
+ *
+ * @property productRepository Репозиторий для работы с товарами
+ * @property categoryRepository Репозиторий для работы с категориями
+ */
 @HiltViewModel
 class AdminProductsViewModel @Inject constructor(
     private val productRepository: ProductRepository,
@@ -26,12 +42,19 @@ class AdminProductsViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AdminProductsState())
+
+    /**
+     * Реактивный поток состояния экрана управления товарами.
+     */
     val state = _state.asStateFlow()
 
     init {
         loadProducts()
     }
 
+    /**
+     * Загружает список всех товаров с сервера.
+     */
     private fun loadProducts() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
@@ -58,14 +81,32 @@ class AdminProductsViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Открывает диалог создания нового товара.
+     */
     fun showAddDialog() {
         _state.update { it.copy(showAddDialog = true) }
     }
 
+    /**
+     * Закрывает диалог создания нового товара.
+     */
     fun hideAddDialog() {
         _state.update { it.copy(showAddDialog = false) }
     }
 
+    /**
+     * Создаёт новый товар в системе.
+     *
+     * После успешного создания обновляет список товаров и закрывает диалог.
+     *
+     * @param name Название товара
+     * @param description Описание товара
+     * @param price Цена товара
+     * @param stock Количество на складе
+     * @param categoryId ID категории товара
+     * @param sku Артикул товара
+     */
     fun createProduct(name: String, description: String, price: Double, stock: Int, categoryId: Int, sku: String) {
         viewModelScope.launch {
             val product = ProductCreateDTO(name, description, price, stock, categoryId, sku)
@@ -82,7 +123,13 @@ class AdminProductsViewModel @Inject constructor(
         }
     }
 
-
+    /**
+     * Удаляет товар по его ID.
+     *
+     * После успешного удаления обновляет список товаров.
+     *
+     * @param id ID товара для удаления
+     */
     fun deleteProduct(id: Int) {
         viewModelScope.launch {
             when (productRepository.deleteProduct(id)) {
@@ -97,6 +144,9 @@ class AdminProductsViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Обновляет список товаров.
+     */
     fun refresh() {
         loadProducts()
     }

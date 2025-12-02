@@ -14,6 +14,14 @@ import java.io.File
 import java.io.FileOutputStream
 import javax.inject.Inject
 
+/**
+ * Состояние экспорта данных администратором.
+ *
+ * @property isLoading Индикатор процесса экспорта
+ * @property error Сообщение об ошибке экспорта
+ * @property successMessage Сообщение об успешном экспорте
+ * @property exportedFile Файл с экспортированными данными
+ */
 data class ExportState(
     val isLoading: Boolean = false,
     val error: String? = null,
@@ -21,6 +29,15 @@ data class ExportState(
     val exportedFile: File? = null
 )
 
+/**
+ * ViewModel для экспорта данных администратором.
+ *
+ * Управляет экспортом товаров, заказов и складских запасов
+ * в форматах CSV и Excel с сохранением во внешнее хранилище.
+ *
+ * @property reportsRepository Репозиторий для получения данных экспорта
+ * @property context Контекст приложения для доступа к файловой системе
+ */
 @HiltViewModel
 class AdminExportViewModel @Inject constructor(
     private val reportsRepository: AdminReportsRepository,
@@ -28,44 +45,62 @@ class AdminExportViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ExportState())
+
+    /** Реактивный поток состояния экспорта */
     val state = _state.asStateFlow()
 
+    /** Экспортирует список товаров в формате CSV */
     fun exportProductsCsv() {
         exportFile("products", "csv") {
             reportsRepository.exportProductsCsv()
         }
     }
 
+    /** Экспортирует список товаров в формате Excel */
     fun exportProductsExcel() {
         exportFile("products", "xlsx") {
             reportsRepository.exportProductsExcel()
         }
     }
 
+    /** Экспортирует список заказов в формате CSV */
     fun exportOrdersCsv() {
         exportFile("orders", "csv") {
             reportsRepository.exportOrdersCsv(null, null)
         }
     }
 
+    /** Экспортирует список заказов в формате Excel */
     fun exportOrdersExcel() {
         exportFile("orders", "xlsx") {
             reportsRepository.exportOrdersExcel(null, null)
         }
     }
 
+    /** Экспортирует складские запасы в формате CSV */
     fun exportInventoryCsv() {
         exportFile("inventory", "csv") {
             reportsRepository.exportInventoryCsv()
         }
     }
 
+    /** Экспортирует складские запасы в формате Excel */
     fun exportInventoryExcel() {
         exportFile("inventory", "xlsx") {
             reportsRepository.exportInventoryExcel()
         }
     }
 
+    /**
+     * Универсальный метод экспорта данных в файл.
+     *
+     * Выполняет запрос к серверу для получения данных,
+     * сохраняет их в файл и обновляет состояние.
+     *
+     * @param name Базовое имя файла (например, "products", "orders")
+     * @param extension Расширение файла ("csv" или "xlsx")
+     * @param exportFunction Suspend-функция, выполняющая запрос к репозиторию
+     */
     private fun exportFile(
         name: String,
         extension: String,
@@ -119,13 +154,22 @@ class AdminExportViewModel @Inject constructor(
                         )
                     }
                 }
-                is Resource.Loading -> {
-                    // Уже в loading
-                }
+                is Resource.Loading -> {}
             }
         }
     }
 
+    /**
+     * Сохраняет ResponseBody в файл.
+     *
+     * Создаёт файл с уникальным именем на основе timestamp
+     * во внешнем хранилище приложения и записывает в него данные.
+     *
+     * @param body Тело ответа от сервера с данными для сохранения
+     * @param name Базовое имя файла
+     * @param extension Расширение файла
+     * @return Сохранённый файл или null в случае ошибки
+     */
     private fun saveFile(
         body: ResponseBody,
         name: String,
@@ -150,6 +194,7 @@ class AdminExportViewModel @Inject constructor(
         }
     }
 
+    /** Очищает сообщения об успехе или ошибке экспорта */
     fun clearMessage() {
         _state.update {
             it.copy(

@@ -11,20 +11,49 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * Состояние экрана регистрации нового пользователя.
+ *
+ * @property isLoading Индикатор загрузки (выполняется ли запрос регистрации)
+ * @property error Сообщение об ошибке (null если ошибок нет)
+ * @property success Флаг успешной регистрации
+ */
 data class RegisterState(
     val isLoading: Boolean = false,
     val error: String? = null,
     val success: Boolean = false
 )
 
+/**
+ * ViewModel для экрана регистрации нового пользователя.
+ *
+ * Управляет процессом регистрации, валидирует данные пользователя,
+ * обрабатывает результаты запроса и обновляет состояние UI.
+ *
+ * @property authRepository Репозиторий для выполнения операций регистрации
+ */
 @HiltViewModel
 class RegisterViewModel @Inject constructor(
     private val authRepository: AuthRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(RegisterState())
+
+    /**
+     * Реактивный поток состояния экрана регистрации.
+     */
     val state = _state.asStateFlow()
 
+    /**
+     * Регистрирует нового пользователя в системе.
+     *
+     * Отправляет запрос на регистрацию с указанными данными
+     * и обновляет состояние в зависимости от результата.
+     *
+     * @param username Имя пользователя
+     * @param email Email пользователя
+     * @param password Пароль пользователя
+     */
     fun register(username: String, email: String, password: String) {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null) }

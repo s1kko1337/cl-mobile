@@ -13,6 +13,15 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * Состояние детального просмотра заказа администратором.
+ *
+ * @property order Данные заказа
+ * @property isLoading Индикатор загрузки или обновления данных
+ * @property error Сообщение об ошибке
+ * @property orderDeleted Флаг успешного удаления заказа
+ * @property statusUpdated Флаг успешного обновления статуса заказа
+ */
 data class AdminOrderDetailState(
     val order: OrderDTO? = null,
     val isLoading: Boolean = false,
@@ -21,14 +30,28 @@ data class AdminOrderDetailState(
     val statusUpdated: Boolean = false
 )
 
+/**
+ * ViewModel для детального просмотра и управления заказом администратором.
+ *
+ * Управляет загрузкой заказа, обновлением его статуса и удалением.
+ *
+ * @property orderRepository Репозиторий для работы с заказами
+ */
 @HiltViewModel
 class AdminOrderDetailViewModel @Inject constructor(
     private val orderRepository: OrderRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AdminOrderDetailState())
+
+    /** Реактивный поток состояния детального просмотра заказа */
     val state = _state.asStateFlow()
 
+    /**
+     * Загружает данные заказа по ID.
+     *
+     * @param orderId ID заказа для загрузки
+     */
     fun loadOrder(orderId: Int) {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null) }
@@ -51,11 +74,19 @@ class AdminOrderDetailViewModel @Inject constructor(
                     }
                 }
 
-                is Resource.Loading<*> -> TODO()
+                is Resource.Loading<*> -> {}
             }
         }
     }
 
+    /**
+     * Обновляет статус заказа.
+     *
+     * После успешного обновления перезагружает данные заказа.
+     *
+     * @param orderId ID заказа для обновления
+     * @param newStatus Новый статус заказа ("Pending", "Processing", "Completed", "Cancelled")
+     */
     fun updateOrderStatus(orderId: Int, newStatus: String) {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null) }
@@ -63,7 +94,6 @@ class AdminOrderDetailViewModel @Inject constructor(
             val orderUpdateDTO = OrderUpdateDTO(status = newStatus)
             when (val result = orderRepository.updateOrderStatus(orderId, orderUpdateDTO)) {
                 is Resource.Success -> {
-                    // Перезагружаем заказ после обновления
                     loadOrder(orderId)
                     _state.update { it.copy(statusUpdated = true) }
                 }
@@ -76,11 +106,16 @@ class AdminOrderDetailViewModel @Inject constructor(
                     }
                 }
 
-                is Resource.Loading<*> -> TODO()
+                is Resource.Loading<*> -> {}
             }
         }
     }
 
+    /**
+     * Удаляет заказ из системы.
+     *
+     * @param orderId ID заказа для удаления
+     */
     fun deleteOrder(orderId: Int) {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null) }
@@ -103,7 +138,7 @@ class AdminOrderDetailViewModel @Inject constructor(
                     }
                 }
 
-                is Resource.Loading<*> -> TODO()
+                is Resource.Loading<*> -> {}
             }
         }
     }

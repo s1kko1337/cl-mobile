@@ -9,6 +9,16 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * Состояние экрана профиля пользователя.
+ *
+ * @property username Имя пользователя
+ * @property email Email пользователя
+ * @property role Роль пользователя (admin/customer)
+ * @property isChangingPassword Индикатор процесса смены пароля
+ * @property changePasswordSuccess Флаг успешной смены пароля
+ * @property changePasswordError Сообщение об ошибке при смене пароля
+ */
 data class ProfileState(
     val username: String = "",
     val email: String = "",
@@ -18,12 +28,25 @@ data class ProfileState(
     val changePasswordError: String? = null
 )
 
+/**
+ * ViewModel для экрана профиля пользователя.
+ *
+ * Управляет отображением информации о пользователе, сменой пароля
+ * и выходом из системы. Автоматически загружает данные пользователя
+ * из локального хранилища при инициализации.
+ *
+ * @property authRepository Репозиторий для операций аутентификации
+ */
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val authRepository: AuthRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ProfileState())
+
+    /**
+     * Реактивный поток состояния профиля пользователя.
+     */
     val state: StateFlow<ProfileState> = _state.asStateFlow()
 
     init {
@@ -42,6 +65,16 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Изменяет пароль пользователя.
+     *
+     * Проверяет соответствие нового пароля и его подтверждения,
+     * отправляет запрос на сервер и обновляет состояние.
+     *
+     * @param currentPassword Текущий пароль пользователя
+     * @param newPassword Новый пароль
+     * @param confirmPassword Подтверждение нового пароля
+     */
     fun changePassword(
         currentPassword: String,
         newPassword: String,
@@ -72,6 +105,9 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Очищает состояние смены пароля (сообщения об успехе и ошибках).
+     */
     fun clearChangePasswordState() {
         _state.update { it.copy(
             changePasswordSuccess = false,
@@ -79,6 +115,11 @@ class ProfileViewModel @Inject constructor(
         )}
     }
 
+    /**
+     * Выполняет выход пользователя из системы.
+     *
+     * Очищает данные аутентификации в локальном хранилище.
+     */
     fun logout() {
         viewModelScope.launch {
             authRepository.logout()

@@ -28,6 +28,20 @@ import com.example.ecommerceapp.ui.customer.product.ProductDetailScreen
 import com.example.ecommerceapp.ui.customer.profile.ProfileScreen
 import com.example.ecommerceapp.ui.customer.settings.SettingsScreen
 
+/**
+ * Граф навигации всего приложения на основе Jetpack Compose Navigation.
+ *
+ * Определяет все доступные экраны и переходы между ними:
+ * - Экраны аутентификации (Login, Register)
+ * - Пользовательские экраны (Home, ProductDetail, Cart, Checkout, Orders, Profile, Settings)
+ * - Административные экраны (Dashboard, Products, Categories, Orders, Analytics, Export)
+ *
+ * Обрабатывает передачу параметров между экранами, навигационные действия
+ * (возврат назад, переход к новому экрану) и управление back stack.
+ *
+ * @param navController Контроллер навигации для управления переходами между экранами
+ * @param startDestination Начальный маршрут, с которого начинается навигация
+ */
 @Composable
 fun NavGraph(
     navController: NavHostController,
@@ -37,7 +51,6 @@ fun NavGraph(
         navController = navController,
         startDestination = startDestination
     ) {
-        // Auth
         composable(Screen.Login.route) {
             LoginScreen(
                 onNavigateToRegister = { navController.navigate(Screen.Register.route) },
@@ -61,7 +74,6 @@ fun NavGraph(
             )
         }
 
-        // Customer screens
         composable(Screen.Home.route) {
             HomeScreen(
                 onProductClick = { productId ->

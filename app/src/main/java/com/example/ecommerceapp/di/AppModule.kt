@@ -22,16 +22,42 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
+/**
+ * Модуль Dagger Hilt для настройки Dependency Injection всего приложения.
+ *
+ * Предоставляет singleton зависимости для:
+ * - Сетевого слоя (Retrofit, OkHttp, ApiService)
+ * - Локальной базы данных (Room, DAO)
+ * - Preferences (DataStore)
+ * - Аутентификационных перехватчиков
+ *
+ * Все зависимости имеют область видимости SingletonComponent.
+ */
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
 
+    /**
+     * Предоставляет singleton экземпляр UserPreferences для управления настройками пользователя.
+     *
+     * @param context Контекст приложения
+     * @return Экземпляр UserPreferences
+     */
     @Provides
     @Singleton
     fun provideUserPreferences(@ApplicationContext context: Context): UserPreferences {
         return UserPreferences(context)
     }
 
+    /**
+     * Предоставляет OkHttp перехватчик для автоматического добавления токена аутентификации в запросы.
+     *
+     * Получает токен из UserPreferences и добавляет его в заголовок Authorization
+     * в формате "Bearer {token}" для всех HTTP запросов.
+     *
+     * @param userPrefs UserPreferences для получения токена
+     * @return Interceptor для добавления токена аутентификации
+     */
     @Provides
     @Singleton
     fun provideAuthInterceptor(userPrefs: UserPreferences): Interceptor {
@@ -45,6 +71,17 @@ object AppModule {
         }
     }
 
+    /**
+     * Предоставляет настроенный OkHttpClient для выполнения HTTP запросов.
+     *
+     * Конфигурация включает:
+     * - Перехватчик аутентификации (добавление Bearer токена)
+     * - Логирование HTTP запросов/ответов (только в DEBUG режиме)
+     * - Таймауты: 30 секунд для подключения, чтения и записи
+     *
+     * @param authInterceptor Перехватчик для добавления токена аутентификации
+     * @return Настроенный OkHttpClient
+     */
     @Provides
     @Singleton
     fun provideOkHttpClient(authInterceptor: Interceptor): OkHttpClient {
@@ -62,6 +99,14 @@ object AppModule {
             .build()
     }
 
+    /**
+     * Предоставляет настроенный Retrofit экземпляр для выполнения REST API запросов.
+     *
+     * Использует базовый URL из BuildConfig и Gson для сериализации/десериализации JSON.
+     *
+     * @param okHttpClient HTTP клиент с настроенными перехватчиками и таймаутами
+     * @return Настроенный Retrofit экземпляр
+     */
     @Provides
     @Singleton
     fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
@@ -72,12 +117,26 @@ object AppModule {
             .build()
     }
 
+    /**
+     * Предоставляет реализацию ApiService интерфейса для выполнения API запросов.
+     *
+     * @param retrofit Настроенный Retrofit экземпляр
+     * @return ApiService для взаимодействия с REST API
+     */
     @Provides
     @Singleton
     fun provideApiService(retrofit: Retrofit): ApiService {
         return retrofit.create(ApiService::class.java)
     }
 
+    /**
+     * Предоставляет экземпляр Room базы данных приложения.
+     *
+     * База данных создаётся с именем "ecommerce_db" и включает миграцию с версии 1 на 2.
+     *
+     * @param context Контекст приложения
+     * @return Настроенный AppDatabase экземпляр
+     */
     @Provides
     @Singleton
     fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
@@ -90,6 +149,12 @@ object AppModule {
             .build()
     }
 
+    /**
+     * Предоставляет DAO для работы с корзиной покупок.
+     *
+     * @param database Экземпляр базы данных приложения
+     * @return CartDao для операций с корзиной
+     */
     @Provides
     @Singleton
     fun provideCartDao(database: AppDatabase): CartDao {

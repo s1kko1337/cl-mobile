@@ -12,7 +12,15 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import com.example.ecommerceapp.util.Resource
 
-
+/**
+ * Состояние экрана управления категориями для администратора.
+ *
+ * @property categories Список всех категорий
+ * @property isLoading Индикатор загрузки данных
+ * @property error Сообщение об ошибке (null если ошибок нет)
+ * @property showAddDialog Флаг отображения диалога создания категории
+ * @property editingCategory Категория для редактирования (null если не редактируем)
+ */
 data class AdminCategoriesState(
     val categories: List<CategoryDTO> = emptyList(),
     val isLoading: Boolean = false,
@@ -21,18 +29,32 @@ data class AdminCategoriesState(
     val editingCategory: CategoryDTO? = null
 )
 
+/**
+ * ViewModel для экрана управления категориями администратором.
+ *
+ * Управляет списком категорий, их созданием, обновлением и удалением.
+ *
+ * @property categoryRepository Репозиторий для работы с категориями
+ */
 @HiltViewModel
 class AdminCategoriesViewModel @Inject constructor(
     private val categoryRepository: CategoryRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AdminCategoriesState())
+
+    /**
+     * Реактивный поток состояния экрана управления категориями.
+     */
     val state = _state.asStateFlow()
 
     init {
         loadCategories()
     }
 
+    /**
+     * Загружает список всех категорий с сервера.
+     */
     private fun loadCategories() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
@@ -59,18 +81,37 @@ class AdminCategoriesViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Открывает диалог создания новой категории.
+     */
     fun showAddDialog() {
         _state.update { it.copy(showAddDialog = true, editingCategory = null) }
     }
 
+    /**
+     * Открывает диалог редактирования категории.
+     *
+     * @param category Категория для редактирования
+     */
     fun showEditDialog(category: CategoryDTO) {
         _state.update { it.copy(editingCategory = category) }
     }
 
+    /**
+     * Закрывает диалог создания/редактирования категории.
+     */
     fun hideDialog() {
         _state.update { it.copy(showAddDialog = false, editingCategory = null) }
     }
 
+    /**
+     * Создаёт новую категорию.
+     *
+     * После успешного создания обновляет список категорий и закрывает диалог.
+     *
+     * @param name Название категории
+     * @param description Описание категории (необязательно)
+     */
     fun createCategory(name: String, description: String?) {
         viewModelScope.launch {
             val category = CategoryCreateDTO(name, description)
@@ -87,6 +128,15 @@ class AdminCategoriesViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Обновляет существующую категорию.
+     *
+     * После успешного обновления обновляет список категорий и закрывает диалог.
+     *
+     * @param id ID категории для обновления
+     * @param name Новое название (необязательно)
+     * @param description Новое описание (необязательно)
+     */
     fun updateCategory(id: Int, name: String?, description: String?) {
         viewModelScope.launch {
             val category = CategoryUpdateDTO(name, description)
@@ -103,6 +153,13 @@ class AdminCategoriesViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Удаляет категорию по её ID.
+     *
+     * После успешного удаления обновляет список категорий.
+     *
+     * @param id ID категории для удаления
+     */
     fun deleteCategory(id: Int) {
         viewModelScope.launch {
             when (val result = categoryRepository.deleteCategory(id)) {
@@ -117,6 +174,9 @@ class AdminCategoriesViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Обновляет список категорий.
+     */
     fun refresh() {
         loadCategories()
     }

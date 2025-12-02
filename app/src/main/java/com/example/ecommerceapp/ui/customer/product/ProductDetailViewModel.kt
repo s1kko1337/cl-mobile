@@ -17,6 +17,15 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * Состояние экрана детальной информации о продукте.
+ *
+ * @property product Информация о продукте
+ * @property reviews Список отзывов на продукт
+ * @property isLoading Индикатор загрузки данных
+ * @property error Сообщение об ошибке (null если ошибок нет)
+ * @property addedToCart Флаг успешного добавления товара в корзину
+ */
 data class ProductDetailState(
     val product: ProductDTO? = null,
     val reviews: List<ProductReviewDTO> = emptyList(),
@@ -25,6 +34,16 @@ data class ProductDetailState(
     val addedToCart: Boolean = false
 )
 
+/**
+ * ViewModel для экрана детальной информации о продукте.
+ *
+ * Управляет загрузкой информации о продукте, отзывов и добавлением товара в корзину.
+ * Получает ID продукта из параметров навигации через SavedStateHandle.
+ *
+ * @property productRepository Репозиторий для работы с продуктами
+ * @property reviewRepository Репозиторий для работы с отзывами
+ * @property cartRepository Репозиторий для работы с корзиной
+ */
 @HiltViewModel
 class ProductDetailViewModel @Inject constructor(
     private val productRepository: ProductRepository,
@@ -36,6 +55,10 @@ class ProductDetailViewModel @Inject constructor(
     private val productId: Int = savedStateHandle.get<Int>("productId") ?: 0
 
     private val _state = MutableStateFlow(ProductDetailState())
+
+    /**
+     * Реактивный поток состояния экрана продукта.
+     */
     val state = _state.asStateFlow()
 
     init {
@@ -43,6 +66,9 @@ class ProductDetailViewModel @Inject constructor(
         loadReviews()
     }
 
+    /**
+     * Загружает информацию о продукте с сервера.
+     */
     private fun loadProduct() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
@@ -69,6 +95,9 @@ class ProductDetailViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Загружает отзывы на продукт с сервера.
+     */
     private fun loadReviews() {
         viewModelScope.launch {
             when (val result = reviewRepository.getProductReviews(productId)) {
@@ -83,13 +112,20 @@ class ProductDetailViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Добавляет продукт в корзину с указанным количеством.
+     *
+     * Формирует полный URL изображения товара на основе базового URL API.
+     * Создаёт CartItem и сохраняет его в локальную базу данных.
+     *
+     * @param quantity Количество товара для добавления
+     */
     fun addToCart(quantity: Int) {
         viewModelScope.launch {
             val product = _state.value.product ?: return@launch
 
             val firstImage = product.images?.firstOrNull()
 
-            // Формируем полный URL изображения с базовым адресом
             val imageUrl = firstImage?.imageUrl?.let { relativeUrl ->
                 if (relativeUrl.startsWith("http")) {
                     relativeUrl
@@ -112,6 +148,9 @@ class ProductDetailViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Сбрасывает флаг добавления товара в корзину.
+     */
     fun resetAddedToCart() {
         _state.update { it.copy(addedToCart = false) }
     }

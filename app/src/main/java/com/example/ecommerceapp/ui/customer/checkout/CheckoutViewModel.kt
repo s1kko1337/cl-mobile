@@ -15,6 +15,16 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * Состояние экрана оформления заказа.
+ *
+ * @property items Список товаров в корзине для оформления
+ * @property total Общая стоимость заказа
+ * @property savedAddresses Список сохранённых адресов доставки пользователя
+ * @property isProcessing Индикатор обработки заказа
+ * @property orderCompleted Флаг успешного оформления заказа
+ * @property error Сообщение об ошибке (null если ошибок нет)
+ */
 data class CheckoutState(
     val items: List<CartItem> = emptyList(),
     val total: Double = 0.0,
@@ -24,6 +34,17 @@ data class CheckoutState(
     val error: String? = null
 )
 
+/**
+ * ViewModel для экрана оформления заказа.
+ *
+ * Управляет процессом оформления заказа: отображает товары из корзины,
+ * рассчитывает общую стоимость, управляет адресами доставки
+ * и отправляет заказ на сервер.
+ *
+ * @property cartRepository Репозиторий для работы с корзиной
+ * @property orderRepository Репозиторий для создания заказов
+ * @property userPreferences Менеджер пользовательских настроек для работы с адресами
+ */
 @HiltViewModel
 class CheckoutViewModel @Inject constructor(
     private val cartRepository: CartRepository,
@@ -32,6 +53,10 @@ class CheckoutViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(CheckoutState())
+
+    /**
+     * Реактивный поток состояния экрана оформления заказа.
+     */
     val state = _state.asStateFlow()
 
     init {
@@ -53,6 +78,18 @@ class CheckoutViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Оформляет заказ с указанными данными.
+     *
+     * Преобразует товары из корзины в элементы заказа,
+     * отправляет заказ на сервер и очищает корзину после успешного создания.
+     * Поддерживает методы оплаты "card" (карта) и "cash" (наличные).
+     *
+     * @param name Имя получателя заказа
+     * @param address Адрес доставки
+     * @param phone Контактный телефон
+     * @param paymentMethod Способ оплаты ("card" или "cash")
+     */
     fun placeOrder(
         name: String,
         address: String,
@@ -62,14 +99,12 @@ class CheckoutViewModel @Inject constructor(
         viewModelScope.launch {
             _state.update { it.copy(isProcessing = true, error = null) }
 
-            // Преобразуем paymentMethod в нужный формат
             val method = when (paymentMethod) {
                 "card" -> "Card"
                 "cash" -> "Cash"
                 else -> "Card"
             }
 
-            // Создаем список товаров для заказа
             val orderItems = _state.value.items.map { item ->
                 OrderItemCreateDTO(
                     productId = item.productId,
@@ -77,7 +112,6 @@ class CheckoutViewModel @Inject constructor(
                 )
             }
 
-            // Создаем заказ
             val orderCreateDTO = OrderCreateDTO(
                 customerName = name,
                 customerPhone = phone,
@@ -88,7 +122,6 @@ class CheckoutViewModel @Inject constructor(
 
             when (val result = orderRepository.createOrder(orderCreateDTO)) {
                 is Resource.Success -> {
-                    // Очищаем корзину после успешного создания заказа
                     cartRepository.clearCart()
                     _state.update {
                         it.copy(
@@ -111,10 +144,26 @@ class CheckoutViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Очищает сообщение об ошибке в состоянии.
+     */
     fun clearError() {
         _state.update { it.copy(error = null) }
     }
 
+    /**
+     * Сохраняет новый адрес доставки в настройках пользователя.
+     *
+     * Создаёт объект адреса доставки с указанными данными и координатами,
+     * и добавляет его в список сохранённых адресов.
+     *
+     * @param name Имя получателя
+     * @param phone Контактный телефон
+     * @param address Текстовое описание адреса
+     * @param latitude Географическая широта (необязательно)
+     * @param longitude Географическая долгота (необязательно)
+     * @param setAsDefault Установить ли данный адрес как адрес по умолчанию
+     */
     fun saveDeliveryAddress(
         name: String,
         phone: String,

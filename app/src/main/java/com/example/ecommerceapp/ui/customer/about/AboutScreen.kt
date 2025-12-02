@@ -17,6 +17,14 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
+/**
+ * Экран "О приложении".
+ *
+ * Отображает информацию о приложении: название, версию, описание,
+ * список основных возможностей, используемые технологии и ссылку на GitHub.
+ *
+ * @param onNavigateBack Callback для возврата на предыдущий экран
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AboutScreen(
@@ -45,7 +53,6 @@ fun AboutScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            // Иконка приложения
             Icon(
                 Icons.Default.ShoppingCart,
                 contentDescription = null,
@@ -53,7 +60,6 @@ fun AboutScreen(
                 tint = MaterialTheme.colorScheme.primary
             )
 
-            // Название приложения
             Text(
                 text = "ECommerce App",
                 style = MaterialTheme.typography.headlineMedium,
@@ -68,7 +74,6 @@ fun AboutScreen(
 
             HorizontalDivider()
 
-            // Описание
             Text(
                 text = "Современное мобильное приложение для онлайн-покупок, разработанное на Kotlin с использованием Jetpack Compose и следующее принципам Clean Architecture.",
                 style = MaterialTheme.typography.bodyLarge,
@@ -76,7 +81,6 @@ fun AboutScreen(
                 color = MaterialTheme.colorScheme.onSurface
             )
 
-            // Основные возможности
             Card(
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -118,7 +122,6 @@ fun AboutScreen(
                 }
             }
 
-            // Технологии
             Card(
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -145,7 +148,6 @@ fun AboutScreen(
                 }
             }
 
-            // Ссылка на GitHub
             Button(
                 onClick = {
                     val intent = Intent(Intent.ACTION_VIEW).apply {
@@ -160,7 +162,6 @@ fun AboutScreen(
                 Text("Исходный код на GitHub")
             }
 
-            // Информация о разработке
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
@@ -189,6 +190,14 @@ fun AboutScreen(
     }
 }
 
+/**
+ * Элемент списка возможностей приложения.
+ *
+ * Отображает иконку и текстовое описание одной функциональности приложения.
+ *
+ * @param icon Иконка возможности
+ * @param text Текстовое описание возможности
+ */
 @Composable
 fun FeatureItem(
     icon: androidx.compose.ui.graphics.vector.ImageVector,

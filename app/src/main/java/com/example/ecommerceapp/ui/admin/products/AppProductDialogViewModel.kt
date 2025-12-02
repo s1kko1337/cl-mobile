@@ -12,6 +12,25 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * Состояние диалога создания нового товара.
+ *
+ * @property name Название товара
+ * @property sku Артикул товара
+ * @property description Описание товара
+ * @property price Цена в виде строки
+ * @property stockQuantity Количество на складе в виде строки
+ * @property categoryId ID выбранной категории
+ * @property categories Список доступных категорий
+ * @property isLoading Индикатор процесса создания товара
+ * @property nameError Ошибка поля названия
+ * @property skuError Ошибка поля артикула
+ * @property priceError Ошибка поля цены
+ * @property stockError Ошибка поля количества
+ * @property categoryError Ошибка выбора категории
+ * @property generalError Общая ошибка операции
+ * @property success Флаг успешного создания товара
+ */
 data class AddProductDialogState(
     val name: String = "",
     val sku: String = "",
@@ -30,6 +49,14 @@ data class AddProductDialogState(
     val success: Boolean = false
 )
 
+/**
+ * ViewModel для диалога создания нового товара.
+ *
+ * Управляет вводом данных нового товара, валидацией полей и созданием товара.
+ *
+ * @property productRepository Репозиторий для работы с товарами
+ * @property categoryRepository Репозиторий для работы с категориями
+ */
 @HiltViewModel
 class AddProductDialogViewModel @Inject constructor(
     private val productRepository: ProductRepository,
@@ -37,12 +64,19 @@ class AddProductDialogViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AddProductDialogState())
+
+    /**
+     * Реактивный поток состояния диалога создания товара.
+     */
     val state: StateFlow<AddProductDialogState> = _state.asStateFlow()
 
     init {
         loadCategories()
     }
 
+    /**
+     * Загружает список категорий для выбора.
+     */
     private fun loadCategories() {
         viewModelScope.launch {
             when (val result = categoryRepository.getCategories()) {
@@ -61,6 +95,7 @@ class AddProductDialogViewModel @Inject constructor(
         }
     }
 
+    /** Обновляет название товара. @param value Новое название */
     fun onNameChange(value: String) {
         _state.update {
             it.copy(
@@ -70,6 +105,7 @@ class AddProductDialogViewModel @Inject constructor(
         }
     }
 
+    /** Обновляет артикул товара. @param value Новый артикул */
     fun onSkuChange(value: String) {
         _state.update {
             it.copy(
@@ -79,10 +115,12 @@ class AddProductDialogViewModel @Inject constructor(
         }
     }
 
+    /** Обновляет описание товара. @param value Новое описание */
     fun onDescriptionChange(value: String) {
         _state.update { it.copy(description = value) }
     }
 
+    /** Обновляет цену товара. @param value Новая цена */
     fun onPriceChange(value: String) {
         _state.update {
             it.copy(
@@ -92,6 +130,7 @@ class AddProductDialogViewModel @Inject constructor(
         }
     }
 
+    /** Обновляет количество товара. @param value Новое количество */
     fun onStockQuantityChange(value: String) {
         _state.update {
             it.copy(
@@ -101,6 +140,7 @@ class AddProductDialogViewModel @Inject constructor(
         }
     }
 
+    /** Выбирает категорию товара. @param categoryId ID категории */
     fun onCategorySelected(categoryId: Int) {
         _state.update {
             it.copy(
@@ -110,10 +150,12 @@ class AddProductDialogViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Создаёт новый товар после валидации всех полей.
+     */
     fun createProduct() {
         val currentState = _state.value
 
-        // Валидация
         var hasErrors = false
         var nameError: String? = null
         var skuError: String? = null
@@ -161,7 +203,6 @@ class AddProductDialogViewModel @Inject constructor(
             return
         }
 
-        // Создание товара
         viewModelScope.launch {
             _state.update {
                 it.copy(

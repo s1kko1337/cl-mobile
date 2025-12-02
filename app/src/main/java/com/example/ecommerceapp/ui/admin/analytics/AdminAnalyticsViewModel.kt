@@ -16,36 +16,48 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import javax.inject.Inject
 
+/**
+ * Состояние экрана аналитики администратора.
+ *
+ * @property isLoading Индикатор загрузки данных
+ * @property error Сообщение об ошибке
+ * @property dailySales Дневная статистика продаж
+ * @property monthlyRevenue Помесячная выручка
+ * @property topProducts Топ товаров по продажам
+ * @property categorySales Продажи по категориям
+ * @property paymentMethodStats Статистика по способам оплаты
+ * @property selectedDays Выбранный период дней для фильтрации
+ * @property selectedMonths Выбранный период месяцев для фильтрации
+ * @property topProductsLimit Лимит топ товаров
+ * @property isGeneratingPdf Индикатор генерации PDF
+ * @property pdfGenerationSuccess Сообщение об успешной генерации PDF
+ * @property pdfGenerationError Ошибка генерации PDF
+ */
 data class AdminAnalyticsState(
     val isLoading: Boolean = false,
     val error: String? = null,
-
-    // Дневная статистика
     val dailySales: List<DailySalesReportDTO> = emptyList(),
-
-    // Помесячная выручка
     val monthlyRevenue: List<MonthlyRevenueDTO> = emptyList(),
-
-    // Топ товары
     val topProducts: List<TopProductDTO> = emptyList(),
-
-    // Продажи по категориям
     val categorySales: List<CategorySalesDTO> = emptyList(),
-
-    // Статистика по способам оплаты
     val paymentMethodStats: List<PaymentMethodStatsDTO> = emptyList(),
-
-    // Выбранный период для фильтрации
     val selectedDays: Int = 30,
     val selectedMonths: Int = 12,
     val topProductsLimit: Int = 10,
-
-    // Состояние генерации PDF
     val isGeneratingPdf: Boolean = false,
     val pdfGenerationSuccess: String? = null,
     val pdfGenerationError: String? = null
 )
 
+/**
+ * ViewModel для экрана аналитики администратора.
+ *
+ * Управляет загрузкой и отображением различных видов статистики и аналитики,
+ * а также генерацией PDF отчётов.
+ *
+ * @property reportsRepository Репозиторий для получения отчётов
+ * @property context Контекст приложения для генерации PDF
+ */
 @HiltViewModel
 class AdminAnalyticsViewModel @Inject constructor(
     private val reportsRepository: AdminReportsRepository,
@@ -53,6 +65,8 @@ class AdminAnalyticsViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AdminAnalyticsState())
+
+    /** Реактивный поток состояния экрана аналитики */
     val state = _state.asStateFlow()
 
     private val pdfGenerator = PdfReportGenerator(context)
@@ -61,29 +75,20 @@ class AdminAnalyticsViewModel @Inject constructor(
         loadAllAnalytics()
     }
 
+    /** Загружает все виды аналитики с учётом текущих фильтров */
     fun loadAllAnalytics() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null) }
-
-            // Загружаем дневную статистику
             loadDailySales(state.value.selectedDays)
-
-            // Загружаем помесячную выручку
             loadMonthlyRevenue(state.value.selectedMonths)
-
-            // Загружаем топ товары
             loadTopProducts(state.value.topProductsLimit)
-
-            // Загружаем продажи по категориям
             loadSalesByCategory()
-
-            // Загружаем статистику по способам оплаты
             loadPaymentMethodStats()
-
             _state.update { it.copy(isLoading = false) }
         }
     }
 
+    /** Загружает дневную статистику продаж за указанный период. @param days Количество дней */
     private suspend fun loadDailySales(days: Int) {
         when (val result = reportsRepository.getDailySales(days)) {
             is Resource.Success -> {
@@ -92,12 +97,11 @@ class AdminAnalyticsViewModel @Inject constructor(
             is Resource.Error -> {
                 _state.update { it.copy(error = result.message) }
             }
-            is Resource.Loading -> {
-                // Уже в loading
-            }
+            is Resource.Loading -> {}
         }
     }
 
+    /** Загружает помесячную выручку. @param months Количество месяцев */
     private suspend fun loadMonthlyRevenue(months: Int) {
         when (val result = reportsRepository.getMonthlyRevenue(months)) {
             is Resource.Success -> {
@@ -106,12 +110,11 @@ class AdminAnalyticsViewModel @Inject constructor(
             is Resource.Error -> {
                 _state.update { it.copy(error = result.message) }
             }
-            is Resource.Loading -> {
-                // Уже в loading
-            }
+            is Resource.Loading -> {}
         }
     }
 
+    /** Загружает топ товаров. @param limit Количество топ товаров */
     private suspend fun loadTopProducts(limit: Int) {
         when (val result = reportsRepository.getTopProducts(limit, null, null)) {
             is Resource.Success -> {
@@ -120,12 +123,11 @@ class AdminAnalyticsViewModel @Inject constructor(
             is Resource.Error -> {
                 _state.update { it.copy(error = result.message) }
             }
-            is Resource.Loading -> {
-                // Уже в loading
-            }
+            is Resource.Loading -> {}
         }
     }
 
+    /** Загружает продажи по категориям */
     private suspend fun loadSalesByCategory() {
         when (val result = reportsRepository.getSalesByCategory(null, null)) {
             is Resource.Success -> {
@@ -134,12 +136,11 @@ class AdminAnalyticsViewModel @Inject constructor(
             is Resource.Error -> {
                 _state.update { it.copy(error = result.message) }
             }
-            is Resource.Loading -> {
-                // Уже в loading
-            }
+            is Resource.Loading -> {}
         }
     }
 
+    /** Загружает статистику по способам оплаты */
     private suspend fun loadPaymentMethodStats() {
         when (val result = reportsRepository.getPaymentMethodStats(null, null)) {
             is Resource.Success -> {
@@ -148,12 +149,11 @@ class AdminAnalyticsViewModel @Inject constructor(
             is Resource.Error -> {
                 _state.update { it.copy(error = result.message) }
             }
-            is Resource.Loading -> {
-                // Уже в loading
-            }
+            is Resource.Loading -> {}
         }
     }
 
+    /** Устанавливает фильтр по дням. @param days Количество дней */
     fun setDaysFilter(days: Int) {
         _state.update { it.copy(selectedDays = days) }
         viewModelScope.launch {
@@ -161,6 +161,7 @@ class AdminAnalyticsViewModel @Inject constructor(
         }
     }
 
+    /** Устанавливает фильтр по месяцам. @param months Количество месяцев */
     fun setMonthsFilter(months: Int) {
         _state.update { it.copy(selectedMonths = months) }
         viewModelScope.launch {
@@ -168,6 +169,7 @@ class AdminAnalyticsViewModel @Inject constructor(
         }
     }
 
+    /** Устанавливает лимит топ товаров. @param limit Количество топ товаров */
     fun setTopProductsLimit(limit: Int) {
         _state.update { it.copy(topProductsLimit = limit) }
         viewModelScope.launch {
@@ -175,10 +177,12 @@ class AdminAnalyticsViewModel @Inject constructor(
         }
     }
 
+    /** Обновляет все данные аналитики */
     fun refresh() {
         loadAllAnalytics()
     }
 
+    /** Генерирует PDF отчёт с текущими данными аналитики */
     fun generatePdfReport() {
         viewModelScope.launch {
             _state.update { it.copy(
@@ -220,6 +224,11 @@ class AdminAnalyticsViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Очищает сообщения о генерации PDF отчёта.
+     *
+     * Сбрасывает флаги успеха и ошибки генерации PDF.
+     */
     fun clearPdfMessages() {
         _state.update { it.copy(
             pdfGenerationSuccess = null,
