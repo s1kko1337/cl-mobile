@@ -21,6 +21,17 @@ import com.example.ecommerceapp.ui.components.UnifiedProductImage
 import com.example.ecommerceapp.ui.components.UnifiedProductImageUrl
 import com.example.ecommerceapp.ui.components.ImageUrlZoomDialog
 
+/**
+ * Экран корзины покупок.
+ *
+ * Отображает список товаров в корзине с возможностью изменения количества,
+ * удаления товаров и перехода к оформлению заказа. Показывает общую сумму
+ * и поддерживает увеличение изображений товаров при клике.
+ *
+ * @param onNavigateBack Callback для возврата на предыдущий экран
+ * @param onCheckout Callback для перехода к оформлению заказа
+ * @param viewModel ViewModel для управления корзиной
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CartScreen(
@@ -33,7 +44,6 @@ fun CartScreen(
     var selectedImageUrl by remember { mutableStateOf<String?>(null) }
     var selectedImageName by remember { mutableStateOf<String?>(null) }
 
-    // Image zoom dialog
     if (showImageDialog && selectedImageUrl != null) {
         ImageUrlZoomDialog(
             imageUrl = selectedImageUrl!!,
@@ -134,6 +144,18 @@ fun CartScreen(
     }
 }
 
+/**
+ * Карточка товара в корзине.
+ *
+ * Отображает изображение, название, цену товара и элементы управления:
+ * кнопки изменения количества (с ограничением по складским запасам)
+ * и кнопку удаления из корзины.
+ *
+ * @param item Элемент корзины с информацией о товаре
+ * @param onQuantityChange Callback для изменения количества товара
+ * @param onRemove Callback для удаления товара из корзины
+ * @param onImageClick Callback для клика по изображению товара
+ */
 @Composable
 fun CartItemCard(
     item: CartItem,

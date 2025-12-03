@@ -14,6 +14,20 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 
+/**
+ * Экран профиля пользователя.
+ *
+ * Отображает информацию о пользователе (имя, email, роль),
+ * предоставляет навигацию к заказам, настройкам, информации о приложении.
+ * Включает функционал смены пароля и выхода из аккаунта с подтверждением.
+ *
+ * @param onNavigateBack Callback для возврата на предыдущий экран
+ * @param onNavigateToOrders Callback для перехода к списку заказов
+ * @param onNavigateToSettings Callback для перехода к настройкам
+ * @param onNavigateToAbout Callback для перехода к экрану "О приложении"
+ * @param onLogout Callback для выхода из системы
+ * @param viewModel ViewModel для управления профилем
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
@@ -31,7 +45,6 @@ fun ProfileScreen(
     var newPassword by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
 
-    // Обработка успешной смены пароля
     LaunchedEffect(state.changePasswordSuccess) {
         if (state.changePasswordSuccess) {
             showChangePasswordDialog = false

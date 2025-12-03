@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
-    <!-- Разрешаем cleartext для локального сервера -->
+    <!-- Разрешаем cleartext (HTTP) для разработки и тестирования -->
+    <!-- ВАЖНО: В продакшене используйте HTTPS и удалите эту секцию! -->
+    <!-- Убедитесь, что домен соответствует BASE_URL из local.properties -->
     <domain-config cleartextTrafficPermitted="true">
         <domain includeSubdomains="true">127.0.0.1</domain>
         <domain includeSubdomains="true">10.0.2.2</domain>
-        <domain includeSubdomains="true">94.142.138.106</domain>
         <domain includeSubdomains="true">localhost</domain>
     </domain-config>
 

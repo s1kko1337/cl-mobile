@@ -24,6 +24,20 @@ import coil3.compose.rememberAsyncImagePainter
 import java.io.File
 import java.io.FileOutputStream
 
+/**
+ * Диалог создания или редактирования отзыва.
+ *
+ * Позволяет установить рейтинг (от 1 до 5 звёзд), написать комментарий
+ * и прикрепить изображение. При редактировании можно удалить существующее изображение.
+ *
+ * @param productName Название товара, к которому относится отзыв
+ * @param existingRating Существующий рейтинг (для редактирования)
+ * @param existingComment Существующий комментарий (для редактирования)
+ * @param existingImageUrl URL существующего изображения (для редактирования)
+ * @param isEdit Флаг режима редактирования
+ * @param onDismiss Callback для закрытия диалога
+ * @param onSubmit Callback для отправки отзыва (рейтинг, комментарий, файл изображения, флаг удаления изображения)
+ */
 @Composable
 fun ReviewDialog(
     productName: String,

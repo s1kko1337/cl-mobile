@@ -18,6 +18,20 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 
+/**
+ * Главный экран панели администратора.
+ *
+ * Отображает сводку статистики (товары, категории, отзывы, заказы),
+ * алерты, навигацию к разделам управления и функционал смены пароля.
+ *
+ * @param onNavigateToProducts Callback для перехода к управлению товарами
+ * @param onNavigateToCategories Callback для перехода к управлению категориями
+ * @param onNavigateToReviews Callback для перехода к управлению отзывами
+ * @param onNavigateToOrders Callback для перехода к управлению заказами
+ * @param onNavigateToAnalytics Callback для перехода к аналитике
+ * @param onLogout Callback для выхода из системы
+ * @param viewModel ViewModel для управления главным экраном панели
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminDashboardScreen(

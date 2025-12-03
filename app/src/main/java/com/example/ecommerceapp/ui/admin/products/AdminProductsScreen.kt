@@ -21,6 +21,16 @@ import com.example.ecommerceapp.ui.components.ImageSizes
 import com.example.ecommerceapp.ui.components.ImageCorners
 import com.example.ecommerceapp.ui.components.ImageZoomDialog
 
+/**
+ * Экран управления товарами администратором.
+ *
+ * Отображает список товаров с возможностью добавления, редактирования и удаления.
+ * Поддерживает просмотр изображений товаров в полноэкранном режиме.
+ *
+ * @param onNavigateBack Callback для возврата на предыдущий экран
+ * @param onProductClick Callback для перехода к редактированию товара
+ * @param viewModel ViewModel для управления товарами
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminProductsScreen(

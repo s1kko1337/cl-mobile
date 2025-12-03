@@ -15,6 +15,16 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.ecommerceapp.ui.components.*
 import kotlinx.coroutines.delay
 
+/**
+ * Экран аналитики администратора.
+ *
+ * Отображает аналитические данные по вкладкам: дневные продажи,
+ * топ товаров, продажи по категориям, статистика по способам оплаты.
+ * Позволяет настраивать фильтры и генерировать PDF отчёты.
+ *
+ * @param onNavigateBack Callback для возврата на предыдущий экран
+ * @param viewModel ViewModel для управления аналитикой
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminAnalyticsScreen(

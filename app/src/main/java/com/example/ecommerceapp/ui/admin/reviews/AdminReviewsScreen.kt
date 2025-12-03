@@ -19,6 +19,16 @@ import com.example.ecommerceapp.ui.components.ImageSizes
 import com.example.ecommerceapp.ui.components.ImageCorners
 import com.example.ecommerceapp.ui.components.ReviewImageZoomDialog
 
+/**
+ * Экран управления отзывами администратором.
+ *
+ * Отображает все отзывы со всех товаров с возможностью фильтрации
+ * по товару и удаления отзывов. Поддерживает просмотр изображений
+ * из отзывов в полноэкранном режиме.
+ *
+ * @param onNavigateBack Callback для возврата на предыдущий экран
+ * @param viewModel ViewModel для управления отзывами
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminReviewsScreen(

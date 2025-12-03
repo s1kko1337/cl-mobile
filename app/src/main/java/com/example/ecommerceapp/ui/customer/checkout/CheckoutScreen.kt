@@ -17,6 +17,20 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.SavedStateHandle
 import com.example.ecommerceapp.data.model.DeliveryAddress
 
+/**
+ * Экран оформления заказа.
+ *
+ * Предоставляет форму для ввода данных доставки (имя, телефон, адрес),
+ * выбора способа оплаты (карта/наличные), сохранения адреса доставки.
+ * Поддерживает выбор адреса с карты и использование сохранённых адресов.
+ * Автоматически заполняет адрес по умолчанию при загрузке.
+ *
+ * @param onNavigateBack Callback для возврата на предыдущий экран
+ * @param onOrderComplete Callback, вызываемый при успешном оформлении заказа
+ * @param onNavigateToMap Callback для перехода к выбору адреса на карте
+ * @param savedStateHandle SavedStateHandle для получения данных с карты
+ * @param viewModel ViewModel для управления оформлением заказа
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CheckoutScreen(
@@ -38,25 +52,21 @@ fun CheckoutScreen(
     var saveAddress by remember { mutableStateOf(false) }
     var setAsDefault by remember { mutableStateOf(false) }
 
-    // Получаем данные с карты
     val selectedAddressFromMap = savedStateHandle.getStateFlow<String?>("selected_address", null).collectAsState()
     val selectedLatitudeFromMap = savedStateHandle.getStateFlow<Double?>("selected_latitude", null).collectAsState()
     val selectedLongitudeFromMap = savedStateHandle.getStateFlow<Double?>("selected_longitude", null).collectAsState()
 
-    // Обновляем адрес когда получаем данные с карты
     LaunchedEffect(selectedAddressFromMap.value) {
         selectedAddressFromMap.value?.let { mapAddress ->
             address = mapAddress
             selectedLatitudeFromMap.value?.let { selectedLatitude = it }
             selectedLongitudeFromMap.value?.let { selectedLongitude = it }
-            // Очищаем данные после использования
             savedStateHandle.remove<String>("selected_address")
             savedStateHandle.remove<Double>("selected_latitude")
             savedStateHandle.remove<Double>("selected_longitude")
         }
     }
 
-    // Автоматически заполняем адрес по умолчанию при загрузке
     LaunchedEffect(state.savedAddresses) {
         val defaultAddress = state.savedAddresses.firstOrNull { it.isDefault }
         if (defaultAddress != null && name.isBlank()) {
@@ -68,11 +78,8 @@ fun CheckoutScreen(
         }
     }
 
-    // Показываем ошибку если она есть
     LaunchedEffect(state.error) {
         state.error?.let {
-            // Можно показать Snackbar или Toast
-            // Пока просто очищаем ошибку
             viewModel.clearError()
         }
     }

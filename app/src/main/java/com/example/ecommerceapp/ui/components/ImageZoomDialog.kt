@@ -20,6 +20,18 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.example.ecommerceapp.data.model.ProductImageDTO
 
+/**
+ * Диалог полноэкранного просмотра изображений товара с зумом.
+ *
+ * Поддерживает пролистывание между изображениями (HorizontalPager),
+ * масштабирование жестами (pinch-to-zoom) и перемещение изображения.
+ * Отключает пролистывание во время зума.
+ *
+ * @param productId ID товара
+ * @param images Список изображений для просмотра
+ * @param initialPage Индекс начального изображения
+ * @param onDismiss Callback для закрытия диалога
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ImageZoomDialog(

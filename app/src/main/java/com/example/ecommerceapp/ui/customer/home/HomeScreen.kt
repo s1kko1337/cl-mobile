@@ -25,6 +25,18 @@ import com.example.ecommerceapp.ui.components.ImageSizes
 import com.example.ecommerceapp.ui.components.UnifiedProductImage
 import com.example.ecommerceapp.ui.components.ImageZoomDialog
 
+/**
+ * Главный экран магазина.
+ *
+ * Отображает список товаров с возможностью фильтрации по категориям,
+ * показывает количество товаров в корзине, предоставляет навигацию
+ * к профилю и корзине. Поддерживает увеличение изображений товаров.
+ *
+ * @param onProductClick Callback для перехода к детальному просмотру товара
+ * @param onCartClick Callback для перехода в корзину
+ * @param onProfileClick Callback для перехода в профиль
+ * @param viewModel ViewModel для управления главным экраном
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
@@ -37,7 +49,6 @@ fun HomeScreen(
     var showImageDialog by remember { mutableStateOf(false) }
     var selectedProduct by remember { mutableStateOf<ProductDTO?>(null) }
 
-    // Image zoom dialog
     if (showImageDialog && selectedProduct?.images?.isNotEmpty() == true) {
         ImageZoomDialog(
             productId = selectedProduct!!.id,
@@ -151,6 +162,16 @@ fun HomeScreen(
     }
 }
 
+/**
+ * Карточка товара на главном экране.
+ *
+ * Отображает изображение, название, описание, цену и количество на складе товара.
+ * Поддерживает клик по всей карточке для перехода к деталям и отдельный клик по изображению.
+ *
+ * @param product Данные товара для отображения
+ * @param onClick Callback для клика по карточке товара
+ * @param onImageClick Callback для клика по изображению товара
+ */
 @Composable
 fun ProductCard(
     product: ProductDTO,

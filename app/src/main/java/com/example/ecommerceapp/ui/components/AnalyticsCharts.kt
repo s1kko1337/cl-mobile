@@ -21,11 +21,17 @@ import com.patrykandpatrick.vico.core.cartesian.data.columnSeries
 import com.patrykandpatrick.vico.core.cartesian.data.lineSeries
 
 /**
- * Линейный график для дневных продаж
+ * Линейный график для дневных продаж.
+ *
+ * Отображает динамику продаж по дням с использованием Vico Charts.
+ * Показывает заглушку, если данные отсутствуют.
+ *
+ * @param data Список пар (дата, сумма продаж)
+ * @param modifier Модификатор компонента
  */
 @Composable
 fun DailySalesLineChart(
-    data: List<Pair<String, Double>>, // Пара: дата, сумма
+    data: List<Pair<String, Double>>,
     modifier: Modifier = Modifier
 ) {
     if (data.isEmpty()) {
@@ -86,11 +92,17 @@ fun DailySalesLineChart(
 }
 
 /**
- * Столбчатая диаграмма для помесячной выручки
+ * Столбчатая диаграмма помесячной выручки.
+ *
+ * Отображает выручку по месяцам в виде столбцов с использованием Vico Charts.
+ * Показывает легенду с названиями месяцев и суммами (в тысячах).
+ *
+ * @param data Список троек (название месяца, год, сумма)
+ * @param modifier Модификатор компонента
  */
 @Composable
 fun MonthlyRevenueBarChart(
-    data: List<Triple<String, Int, Double>>, // Тройка: название месяца, год, сумма
+    data: List<Triple<String, Int, Double>>,
     modifier: Modifier = Modifier
 ) {
     if (data.isEmpty()) {
@@ -161,11 +173,17 @@ fun MonthlyRevenueBarChart(
 }
 
 /**
- * Горизонтальная столбчатая диаграмма для топ товаров
+ * Горизонтальная столбчатая диаграмма топ товаров.
+ *
+ * Отображает топ-5 товаров по выручке с прогресс-барами разных цветов.
+ * Показывает название (обрезанное до 20 символов) и выручку для каждого товара.
+ *
+ * @param data Список пар (название товара, выручка)
+ * @param modifier Модификатор компонента
  */
 @Composable
 fun TopProductsHorizontalBarChart(
-    data: List<Pair<String, Double>>, // Пара: название товара, выручка
+    data: List<Pair<String, Double>>,
     modifier: Modifier = Modifier
 ) {
     if (data.isEmpty()) {
@@ -221,11 +239,17 @@ fun TopProductsHorizontalBarChart(
 }
 
 /**
- * Круговая диаграмма для продаж по категориям
+ * Диаграмма продаж по категориям.
+ *
+ * Отображает распределение выручки по категориям товаров
+ * с цветными индикаторами, процентами и суммами выручки.
+ *
+ * @param data Список пар (название категории, выручка)
+ * @param modifier Модификатор компонента
  */
 @Composable
 fun CategorySalesPieChart(
-    data: List<Pair<String, Double>>, // Пара: название категории, выручка
+    data: List<Pair<String, Double>>,
     modifier: Modifier = Modifier
 ) {
     if (data.isEmpty()) {
@@ -305,11 +329,18 @@ fun CategorySalesPieChart(
 }
 
 /**
- * Круговая диаграмма для способов оплаты
+ * Диаграмма распределения по способам оплаты.
+ *
+ * Отображает статистику по способам оплаты (Card, Cash):
+ * общее количество заказов, выручку, процентное соотношение
+ * и прогресс-бары для визуализации долей.
+ *
+ * @param data Список троек (способ оплаты, количество заказов, выручка)
+ * @param modifier Модификатор компонента
  */
 @Composable
 fun PaymentMethodsPieChart(
-    data: List<Triple<String, Int, Double>>, // Тройка: способ оплаты, количество заказов, выручка
+    data: List<Triple<String, Int, Double>>,
     modifier: Modifier = Modifier
 ) {
     if (data.isEmpty()) {
@@ -446,7 +477,11 @@ fun PaymentMethodsPieChart(
 }
 
 /**
- * Заглушка для пустого графика
+ * Заглушка для пустого графика.
+ *
+ * Отображается когда данные для графика отсутствуют.
+ *
+ * @param modifier Модификатор компонента
  */
 @Composable
 private fun EmptyChartPlaceholder(modifier: Modifier = Modifier) {

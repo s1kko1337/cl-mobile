@@ -28,6 +28,17 @@ import com.example.ecommerceapp.ui.components.ImageZoomDialog
 import java.io.File
 import java.io.FileOutputStream
 
+/**
+ * Экран редактирования товара администратором.
+ *
+ * Предоставляет полную форму редактирования товара: название, описание,
+ * цена, количество, категория. Управляет изображениями товара с возможностью
+ * добавления, удаления и изменения порядка отображения.
+ *
+ * @param productId ID товара для редактирования
+ * @param onNavigateBack Callback для возврата на предыдущий экран после сохранения
+ * @param viewModel ViewModel для управления редактированием товара
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminProductEditScreen(

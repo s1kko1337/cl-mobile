@@ -27,6 +27,17 @@ import com.example.ecommerceapp.ui.components.ImageCorners
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
 
+/**
+ * Экран детального просмотра товара.
+ *
+ * Отображает полную информацию о товаре (изображения, описание, цена, наличие),
+ * отзывы покупателей, возможность добавления в корзину с выбором количества.
+ * Поддерживает просмотр изображений товара и отзывов в полноэкранном режиме.
+ *
+ * @param onNavigateBack Callback для возврата на предыдущий экран
+ * @param onNavigateToCart Callback для перехода в корзину после добавления товара
+ * @param viewModel ViewModel для управления детальным просмотром товара
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProductDetailScreen(

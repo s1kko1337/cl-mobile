@@ -14,6 +14,15 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.ecommerceapp.data.model.CategoryDTO
 
+/**
+ * Экран управления категориями товаров администратором.
+ *
+ * Отображает список категорий с возможностью добавления,
+ * редактирования и удаления. Удаление требует подтверждения.
+ *
+ * @param onNavigateBack Callback для возврата на предыдущий экран
+ * @param viewModel ViewModel для управления категориями
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminCategoriesScreen(

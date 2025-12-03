@@ -21,10 +21,10 @@
         android:theme="@style/Theme.ECommerceApp"
         android:networkSecurityConfig="@xml/network_security_config">
 
-        <!-- Яндекс.Карты API ключ -->
+        <!-- Яндекс.Карты API ключ (загружается из local.properties) -->
         <meta-data
             android:name="com.yandex.maps.MAPKIT_API_KEY"
-            android:value="fa39cb0c-891d-4eea-a21e-6115342cd62d" />
+            android:value="${MAPKIT_API_KEY}" />
 
         <activity
             android:name=".MainActivity"

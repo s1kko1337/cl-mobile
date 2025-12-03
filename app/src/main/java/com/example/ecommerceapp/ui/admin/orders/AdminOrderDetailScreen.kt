@@ -14,6 +14,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 
+/**
+ * Экран детального просмотра заказа администратором.
+ *
+ * Отображает полную информацию о заказе с возможностью изменения статуса
+ * и удаления заказа. Обе операции требуют подтверждения.
+ *
+ * @param orderId ID заказа для отображения
+ * @param onNavigateBack Callback для возврата на предыдущий экран
+ * @param viewModel ViewModel для управления детальным просмотром заказа
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminOrderDetailScreen(

@@ -14,6 +14,18 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.SavedStateHandle
 import com.example.ecommerceapp.data.model.DeliveryAddress
 
+/**
+ * Экран настроек адресов доставки.
+ *
+ * Отображает список сохранённых адресов доставки с возможностью
+ * добавления, редактирования и удаления. Поддерживает выбор адреса
+ * с карты и отметку адреса по умолчанию.
+ *
+ * @param onNavigateBack Callback для возврата на предыдущий экран
+ * @param onNavigateToMap Callback для перехода к выбору адреса на карте
+ * @param savedStateHandle SavedStateHandle для получения данных с карты
+ * @param viewModel ViewModel для управления адресами доставки
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
@@ -26,17 +38,14 @@ fun SettingsScreen(
     var showAddDialog by remember { mutableStateOf(false) }
     var editingAddress by remember { mutableStateOf<Pair<Int, DeliveryAddress>?>(null) }
 
-    // Данные с карты
     var pendingMapAddress by remember { mutableStateOf<String?>(null) }
     var pendingMapLatitude by remember { mutableStateOf<Double?>(null) }
     var pendingMapLongitude by remember { mutableStateOf<Double?>(null) }
 
-    // Получаем данные с карты
     val selectedAddressFromMap = savedStateHandle.getStateFlow<String?>("selected_address", null).collectAsState()
     val selectedLatitudeFromMap = savedStateHandle.getStateFlow<Double?>("selected_latitude", null).collectAsState()
     val selectedLongitudeFromMap = savedStateHandle.getStateFlow<Double?>("selected_longitude", null).collectAsState()
 
-    // Обновляем временные переменные когда получаем данные с карты
     LaunchedEffect(selectedAddressFromMap.value) {
         selectedAddressFromMap.value?.let { mapAddress ->
             pendingMapAddress = mapAddress

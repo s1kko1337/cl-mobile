@@ -16,6 +16,17 @@ import com.example.ecommerceapp.ui.components.ReviewDialog
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
+/**
+ * Экран детального просмотра заказа.
+ *
+ * Отображает подробную информацию о заказе (товары, адрес доставки, статус, сумма).
+ * Для завершённых заказов доступно добавление/редактирование отзывов с фотографиями.
+ * Позволяет удалять заказ и отзывы с подтверждением.
+ *
+ * @param orderId ID заказа для отображения
+ * @param onNavigateBack Callback для возврата на предыдущий экран
+ * @param viewModel ViewModel для управления детальным просмотром заказа
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OrderDetailScreen(

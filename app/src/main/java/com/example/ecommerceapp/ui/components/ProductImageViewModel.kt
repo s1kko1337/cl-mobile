@@ -12,6 +12,14 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * ViewModel для управления изображениями товаров и отзывов.
+ *
+ * Загружает и кэширует изображения в виде Bitmap с использованием
+ * уникальных ключей для предотвращения повторных запросов.
+ *
+ * @property imageRepository Репозиторий для загрузки изображений
+ */
 @HiltViewModel
 class ProductImageViewModel @Inject constructor(
     private val imageRepository: ImageRepository
@@ -19,6 +27,16 @@ class ProductImageViewModel @Inject constructor(
 
     private val imageStates = mutableMapOf<String, MutableStateFlow<Resource<Bitmap>?>>()
 
+    /**
+     * Получает изображение товара.
+     *
+     * Создаёт или возвращает существующий StateFlow для изображения.
+     * Кэширует результат для избежания повторных загрузок.
+     *
+     * @param productId ID товара
+     * @param imageId ID изображения
+     * @return StateFlow с результатом загрузки изображения
+     */
     fun getImage(productId: Int, imageId: Int): StateFlow<Resource<Bitmap>?> {
         val key = "product_${productId}_$imageId"
 
@@ -31,6 +49,16 @@ class ProductImageViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Получает изображение отзыва.
+     *
+     * Создаёт или возвращает существующий StateFlow для изображения отзыва.
+     * Кэширует результат для избежания повторных загрузок.
+     *
+     * @param productId ID товара
+     * @param reviewId ID отзыва
+     * @return StateFlow с результатом загрузки изображения отзыва
+     */
     fun getReviewImage(productId: Int, reviewId: Int): StateFlow<Resource<Bitmap>?> {
         val key = "review_${productId}_$reviewId"
 

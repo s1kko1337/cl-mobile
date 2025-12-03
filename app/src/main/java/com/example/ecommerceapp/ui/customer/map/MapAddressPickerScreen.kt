@@ -29,6 +29,17 @@ import com.yandex.mapkit.map.InputListener
 import com.yandex.mapkit.map.Map
 import com.yandex.mapkit.mapview.MapView
 
+/**
+ * Экран выбора адреса доставки на карте.
+ *
+ * Интегрирует Yandex MapKit для выбора точки доставки на карте.
+ * Запрашивает разрешения на геолокацию, определяет текущее местоположение,
+ * преобразует координаты в текстовый адрес с помощью Geocoder.
+ *
+ * @param onNavigateBack Callback для возврата на предыдущий экран
+ * @param onAddressSelected Callback с выбранным адресом и координатами
+ * @param viewModel ViewModel для управления картой и геолокацией
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MapAddressPickerScreen(

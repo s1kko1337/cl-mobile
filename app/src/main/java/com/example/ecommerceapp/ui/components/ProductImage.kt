@@ -19,6 +19,19 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.ecommerceapp.data.model.ProductImageDTO
 import com.example.ecommerceapp.util.Resource
 
+/**
+ * Компонент отображения изображения товара.
+ *
+ * Загружает изображение через ProductImageViewModel,
+ * показывает индикатор загрузки, обрабатывает ошибки.
+ * Использует Bitmap вместо URL для отображения.
+ *
+ * @param productId ID товара
+ * @param imageInfo Информация об изображении
+ * @param modifier Модификатор компонента
+ * @param contentScale Способ масштабирования изображения
+ * @param viewModel ViewModel для загрузки изображений
+ */
 @Composable
 fun ProductImage(
     productId: Int,

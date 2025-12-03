@@ -8,6 +8,17 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
+// Загрузка конфиденциальных значений из local.properties
+val localProperties = java.util.Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.inputStream().use { localProperties.load(it) }
+}
+
+// Получение значений из local.properties с fallback на дефолтные значения для сборки
+val baseUrl = localProperties.getProperty("BASE_URL") ?: "http://localhost:5000"
+val mapkitApiKey = localProperties.getProperty("MAPKIT_API_KEY") ?: ""
+
 android {
     namespace = "com.example.ecommerceapp"
     compileSdk = 36
@@ -20,7 +31,13 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField("String", "BASE_URL", "\"http://94.142.138.106:5000\"")
+
+        // Конфиденциальные значения из local.properties
+        buildConfigField("String", "BASE_URL", "\"$baseUrl\"")
+        buildConfigField("String", "MAPKIT_API_KEY", "\"$mapkitApiKey\"")
+
+        // Передача API ключа в манифест
+        manifestPlaceholders["MAPKIT_API_KEY"] = mapkitApiKey
 
     }
 

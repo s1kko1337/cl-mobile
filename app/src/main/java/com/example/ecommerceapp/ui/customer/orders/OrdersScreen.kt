@@ -16,6 +16,17 @@ import com.example.ecommerceapp.data.model.OrderDTO
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
+/**
+ * Экран списка заказов пользователя.
+ *
+ * Отображает историю заказов пользователя с возможностью
+ * перехода к детальному просмотру каждого заказа.
+ * Автоматически загружает заказы при открытии.
+ *
+ * @param onNavigateBack Callback для возврата на предыдущий экран
+ * @param onOrderClick Callback для перехода к детальному просмотру заказа
+ * @param viewModel ViewModel для управления списком заказов
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OrdersScreen(
